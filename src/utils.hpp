@@ -1,0 +1,74 @@
+#ifndef GM_UTILS_HPP
+#define GM_UTILS_HPP
+
+#include <exception>
+#include <random>
+#include <ostream>
+#include <vector>
+#include <map>
+#include <string>
+#include <cctype>
+#include <set>
+#include <deque>
+#include "boost_libraries.hpp"
+#include "instances.hpp"
+#include "conll_word.hpp"
+#include "conll_sentence.hpp"
+#include "conll_data.hpp"
+#include "conll_loader.hpp"
+
+namespace graphmod{
+
+  std::map<std::string, std::string> collect_properties(boost::property_tree::ptree&);
+
+
+  int find_range(double, std::vector<double>);
+
+  graphmod::Instances from_conll(std::vector<std::string>, std::vector<std::string>, int, unsigned int);
+
+  graphmod::Instances from_lines(std::string, std::vector<std::string>, unsigned int);
+
+  template<class key_type, class value_type>
+  std::ostream& operator<<(std::ostream& stream, const std::map<key_type, value_type>& object){
+    for(auto kv_pair: object){
+      stream << kv_pair.first << "=" << kv_pair.second << " ";
+    }
+    return stream;
+  }
+
+  template<class data_type>
+  std::ostream& operator<<(std::ostream& out, const std::vector<data_type>& object){
+    out << "[";
+    for(unsigned int i=0; i<object.size(); i++){
+      out << object[i];
+      if(i < object.size() - 1){
+	out << ", ";
+      }
+    }
+    out << "]";
+    return out;
+  }
+
+  template<class first_type, class second_type>
+  std::ostream& operator<<(std::ostream& out, const std::pair<first_type, second_type>& object){
+    out << object.first << "=" << object.second;
+    return out;
+  }
+
+  template<class data_type>
+  std::ostream& operator<<(std::ostream& out, const std::deque<data_type>& object){
+    out << "[";
+    for(int i=0; i<object.size(); i++){
+      out << object[i];
+      if(i < object.size() - 1){
+	out << ", ";
+      }
+    }
+    out << "]";
+    return out;
+  }
+
+
+}
+
+#endif
