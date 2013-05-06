@@ -15,6 +15,7 @@ namespace graphmod{
   class CategoricalVariable : public Variable<CategoricalVariable<counts_type>, counts_type>, public HasValue<int>, public Categorical<std::string>{
   public:
     using VariableInterface<counts_type>::get_neighbors;
+
     CategoricalVariable() : 
       Variable<CategoricalVariable<counts_type>, counts_type >(false), 
       HasValue<int>(-1), 
@@ -22,6 +23,7 @@ namespace graphmod{
       _lower(-1), 
       _upper(-1){
     }
+
     CategoricalVariable(std::string value, Alphabet<std::string>& alphabet) : 
       Variable<CategoricalVariable<counts_type>, counts_type >(true), 
       HasValue<int>(alphabet.get_index(value)), 
@@ -29,6 +31,7 @@ namespace graphmod{
       _lower(-1), 
       _upper(-1){
     }
+
     CategoricalVariable(int value, Alphabet<std::string>& alphabet) : 
       Variable<CategoricalVariable<counts_type>, counts_type >(true), 
       HasValue<int>(value), 
@@ -36,6 +39,7 @@ namespace graphmod{
       _lower(-1), 
       _upper(-1){
     }
+
     CategoricalVariable(Alphabet<std::string>& alphabet) : 
       Variable<CategoricalVariable<counts_type>, counts_type >(false), 
       HasValue<int>(-1), 
@@ -43,6 +47,7 @@ namespace graphmod{
       _lower(-1), 
       _upper(-1){
     }
+
     CategoricalVariable(Alphabet<std::string>& alphabet, int lower, int upper) : 
       Variable<CategoricalVariable<counts_type>, counts_type >(false), 
       HasValue<int>(-1), 
@@ -50,8 +55,10 @@ namespace graphmod{
       _lower(lower), 
       _upper(upper){
     }
+
     virtual ~CategoricalVariable(){
     }
+
     void compile(counts_type& counts){
       if(_lower == -1){
 	_lower = 0;
@@ -60,32 +67,36 @@ namespace graphmod{
 	_upper = get_domain_size();
       }
     }
-    ProbabilityVector log_densities(counts_type& counts) const{
-      ProbabilityVector probs(std::vector<double>(get_domain_size(), 1.0));
+
+    LogProbabilityVector log_densities(counts_type& counts) const{
+      LogProbabilityVector log_probs(get_domain_size());
       for(auto factor: get_neighbors()){
-	probs = probs * factor->evaluate(counts, this);
+	log_probs = log_probs * factor->log_densities(counts, this);
       }
-      return probs;
+      return log_probs;
     }
-    double log_likelihood(counts_type& counts){
-      return log_densities(counts)[get_value()];
+
+    double log_likelihood(counts_type& counts) const{
+      auto factors = get_neighbors();
+      std::vector<double> log_densities;
+      std::transform(factors.begin(), factors.end(), std::back_inserter(log_densities), [&counts](FactorInterface<counts_type>* factor){
+	  return factor->log_density(counts);
+	});
+      return add_logs(log_densities);
+	//std::accumulate(log_densities.begin(), log_densities.end(), 0.0); //, [](double x, double y){ return x * y; });
+	//log_densities(counts)[get_value_copy()];
     }
+
     void sample_implementation(counts_type& counts){
       for(auto factor: get_neighbors()){
 	factor->adjust_counts(counts, -1);
       }
-      ProbabilityVector log_probs = log_densities(counts);
-      auto probs = log_probs.probs();
-      if(_upper != -1){
-	probs.resize(_upper + 1);
-      }
-      std::discrete_distribution<> dist(probs.begin(), probs.end());
-      int new_val = dist(global_rng);
-      set_value(new_val);
+      set_value(log_densities(counts).sample(global_rng));
       for(auto factor: get_neighbors()){
 	factor->adjust_counts(counts, 1);
       }
     }
+
     virtual std::string get_name() const{
       return "CategoricalVariable";
     }

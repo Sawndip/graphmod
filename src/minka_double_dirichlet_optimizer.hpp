@@ -1,27 +1,28 @@
-#ifndef GRAPHMOD_MINKA_DIRICHLET_OPTIMIZER_HPP
-#define GRAPHMOD_MINKA_DIRICHLET_OPTIMIZER_HPP
+#ifndef GRAPHMOD_MINKA_DOUBLE_DIRICHLET_OPTIMIZER_HPP
+#define GRAPHMOD_MINKA_DOUBLE_DIRICHLET_OPTIMIZER_HPP
 
 #include <vector>
 #include <boost/math/special_functions.hpp>
 #include "optimizer.hpp"
 #include "boost_libraries.hpp"
 #include "continuous_vector_variable.hpp"
-#include "utils.hpp"
 
 namespace graphmod{
   template<class counts_type>
-  class MinkaDirichletOptimizer : public Optimizer<MinkaDirichletOptimizer<counts_type>, counts_type>{
+  class MinkaDoubleDirichletOptimizer : public Optimizer<MinkaDoubleDirichletOptimizer<counts_type>, counts_type>{
   public:
-    MinkaDirichletOptimizer(ContinuousVectorVariable<counts_type>* node, 
-			    std::string group_name, 
+    MinkaDoubleDirichletOptimizer(ContinuousVectorVariable<counts_type>* node, 
+			    std::string groupA_name, 
+			    std::string groupB_name, 
 			    std::string observation_name, 
 			    bool symmetric) : 
       _node(node), 
-      _group_name(group_name), 
+      _groupA_name(groupA_name), 
+      _groupB_name(groupB_name), 
       _observation_name(observation_name), 
       _symmetric(symmetric){
     }
-    MinkaDirichletOptimizer(){
+    MinkaDoubleDirichletOptimizer(){
     }
 
     /*
@@ -30,7 +31,7 @@ namespace graphmod{
 	   (num_o * (sum_g(psi(num_g + a_sum)) - num_g * psi(a_sum)))
      */
     static inline std::vector<double> symmetric_optimized(std::vector<double> current, std::vector<std::vector<int> > group_observation_counts, int iterations=200, int iteration=0){
-      throw GraphmodException("unimplemented: MinkaDirichletOptimizer::symmetric_optimized");
+      throw GraphmodException("unimplemented: MinkaDoubleDirichletOptimizer::symmetric_optimized");
       /*
       int num_obs = current.size();
       double current_value = std::accumulate(current.begin(), current.end(), 0.0) / current.size();
@@ -77,19 +78,23 @@ namespace graphmod{
     }
 
     void optimize_implementation(const counts_type& counts, int iterations) const{
-      _symmetric ? _node->set_value(symmetric_optimized(_node->get_value_copy(), counts(_group_name, _observation_name), iterations)) : 
-	_node->set_value(asymmetric_optimized(_node->get_value_copy(), counts(_group_name, _observation_name), iterations));
+      throw GraphmodException("unimplemented: MinkaDoubleDirichletOptimizer::optimize_implementation");
+      //_symmetric ? _node->set_value(symmetric_optimized(_node->get_value_copy(), counts(_group_name, _observation_name), iterations)) : 
+      //_node->set_value(asymmetric_optimized(_node->get_value_copy(), counts(_group_name, _observation_name), iterations));
     }
+
+
   private:
     ContinuousVectorVariable<counts_type>* _node;
-    std::string _group_name;
+    std::string _groupA_name;
+    std::string _groupB_name;
     std::string _observation_name;
     bool _symmetric;
     friend class boost::serialization::access;
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version){
-      ar & boost::serialization::base_object<Optimizer<MinkaDirichletOptimizer<counts_type>, counts_type> >(*this);
-      ar & _node & _group_name & _observation_name & _symmetric;
+      ar & boost::serialization::base_object<Optimizer<MinkaDoubleDirichletOptimizer<counts_type>, counts_type> >(*this);
+      ar & _node & _groupA_name & _groupB_name & _observation_name & _symmetric;
     }
   };
 }

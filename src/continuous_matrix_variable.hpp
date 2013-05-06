@@ -23,6 +23,9 @@ namespace graphmod{
     }
     void sample_implementation(counts_type&){
     }
+    double log_likelihood(counts_type&) const{
+      throw GraphmodException("unimplemented: ContinuousMatrixVariable::log_likelihood");
+    }
     std::string get_name() const{
       return "ContinuousMatrixVariable";
     }

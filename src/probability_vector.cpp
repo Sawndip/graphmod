@@ -1,114 +1,85 @@
 #include "probability_vector.hpp"
 
 namespace graphmod{
-  using namespace std;
-  ProbabilityVector::ProbabilityVector(vector<double> probs) : vector<double>(probs){    
-    transform(begin(), end(), begin(),
-	      [](double value){ return log(value); });
-    normalize();
+
+  ProbabilityVector::ProbabilityVector(){
   }
 
-  string ProbabilityVector::str() const{
-    stringstream ss;
+  ProbabilityVector::ProbabilityVector(std::vector<double> probs) : std::vector<double>(probs){    
+    _normalize();
+  }
+
+  ProbabilityVector::ProbabilityVector(int size) : std::vector<double>(size, 1.0 / size){
+  }
+
+  ProbabilityVector::ProbabilityVector(LogProbabilityVector& log_probs){
+    std::transform(log_probs.begin(), log_probs.end(), back_inserter(*this), [](double log_p){ return std::exp(log_p); });
+    _normalize();
+  }
+
+  int ProbabilityVector::sample(std::mt19937_64& rng){
+    std::vector<double> summed;
+    std::partial_sum(begin(), end(), std::back_inserter(summed), std::plus<double>());
+    std::uniform_real_distribution<> dist(0.0, 1.0);
+    double r = dist(rng);
+    return std::distance(summed.begin(), std::upper_bound(summed.begin(), summed.end(), r));    
+  }
+
+  std::string ProbabilityVector::str() const{
+    std::stringstream ss;
     ss << "[";
-    for_each(begin(), end(), [&ss](double lprob){ 
-	ss <<  exp(lprob) << "/" << lprob << ", "; 
+    std::for_each(begin(), end(), [&ss](double prob){ 
+	ss << prob << ", "; 
       });
     ss << "]";
     return ss.str();
   }
 
   ProbabilityVector ProbabilityVector::operator^(const int power){
-    ProbabilityVector retval(vector<double>(size(), 1.0));
-    transform(begin(), end(), retval.begin(), [power](double log_prob){
+    ProbabilityVector retval(std::vector<double>(size(), 1.0));
+    std::transform(begin(), end(), retval.begin(), [power](double log_prob){
 	return power * log_prob;
       });
-    retval.normalize();
+    retval._normalize();
     return retval;
   }
 
   ProbabilityVector ProbabilityVector::operator*(const ProbabilityVector& other){
-    ProbabilityVector retval(vector<double>(size(), 1.0));
-    transform(begin(), end(), other.begin(), retval.begin(), [](double log_a, double log_b){
-	return log_a + log_b;
+    ProbabilityVector retval;
+    std::transform(begin(), end(), other.begin(), std::back_inserter(retval), [](double p_a, double p_b){
+	return p_a * p_b;
       });
-    retval.normalize();
+    retval._normalize();
     return retval;
   }
 
   ProbabilityVector ProbabilityVector::operator/(const ProbabilityVector& other){
-    ProbabilityVector retval(vector<double>(size(), 1.0));
-    transform(begin(), end(), other.begin(), retval.begin(), [](double log_a, double log_b){
-	return log_a - log_b;
+    ProbabilityVector retval;
+    std::transform(begin(), end(), other.begin(), std::back_inserter(retval), [](double p_a, double p_b){
+	return p_a / p_b;
       });
-    retval.normalize();
+    retval._normalize();
     return retval;
   }
 
   ProbabilityVector ProbabilityVector::operator+(const ProbabilityVector& other){
-    throw GraphmodException("unimplemented probability vector operation: +");
-    ProbabilityVector retval(vector<double>(size(), 1.0));
-    transform(begin(), end(), other.begin(), retval.begin(), [](double log_a, double log_b){
-	double small, large;
-	if(log_a < log_b){
-	  small = log_a;
-	  large = log_b;
-	}
-	else{
-	  small = log_b;
-	  large = log_a;
-	}
-	double neg_diff = small - large;
-	if(neg_diff < -20){
-	  return large;
-	}
-	return large + log(1.0 + exp(neg_diff));
-      });
-    retval.normalize();
+    ProbabilityVector retval;
+    std::transform(begin(), end(), other.begin(), retval.begin(), [](double a, double b){ return a + b; });
     return retval;
   }
 
   ProbabilityVector ProbabilityVector::operator-(const ProbabilityVector& other){
-    throw GraphmodException("unimplemented probability vector operation: -");
-    ProbabilityVector retval(vector<double>(size(), 1.0));
-    transform(begin(), end(), other.begin(), retval.begin(), [](double log_a, double log_b){
-	double small, large;
-	if(log_a < log_b){
-	  small = log_a;
-	  large = log_b;
-	}
-	else{
-	  small = log_b;
-	  large = log_a;
-	}
-	double neg_diff = small - large;
-	if(neg_diff < -20){
-	  return large;
-	}
-	return large + log(1.0 + exp(neg_diff));
-      });
-    retval.normalize();
+    ProbabilityVector retval;
+    std::transform(begin(), end(), other.begin(), retval.begin(), [](double a, double b){ return a - b; });
     return retval;
   }
 
-  void ProbabilityVector::normalize(){
-    double add = log_sum();
-    transform(begin(), end(), begin(), [add](double val){ return val - add; });
+  void ProbabilityVector::_normalize(){
+    double add = _sum();
+    std::transform(begin(), end(), begin(), [add](double val){ return val / add; });
   }
 
-  vector<double> ProbabilityVector::probs(){
-    vector<double> retval(size());
-    normalize();
-    transform(begin(), end(), retval.begin(), [](double log_p){ return exp(log_p); });
-    return retval;
-  }
-
-  double ProbabilityVector::log_sum() const{
-    double m = *(max_element(begin(), end()));
-    vector<double> temp(size());
-    transform(begin(), end(), temp.begin(), [m](double log_i){
-	return exp(log_i - m);
-      });
-    return m + log(accumulate(temp.begin(), temp.end(), 0.0));
+  double ProbabilityVector::_sum() const{
+    return std::accumulate(begin(), end(), 0.0);
   }
 }

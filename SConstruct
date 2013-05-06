@@ -16,7 +16,7 @@ vars.AddVariables(
     ("PYTHON_PATH", "", "/usr/include/python2.7"),
 
     BoolVariable("DEBUG", "", False),
-    ("OPTIMIZE_FLAGS", "", "-O3 -ffast-math -fno-builtin -pipe -march=native -mfpmath=sse -msse2 -Wall"),
+    ("OPTIMIZE_FLAGS", "", "-O3 -ffast-math -fno-builtin -pipe -march=native -mfpmath=sse -msse2 -Wall ${USE_OMP and '-fopenmp' or ''}"),
     ("DEBUG_FLAGS", "", "-O0 -ggdb -Wall"),
 
     # parallel processing options
@@ -44,7 +44,7 @@ env = Environment(variables=vars, ENV=os.environ, TARFLAGS="-c -z", TARSUFFIX=".
                   BUILDERS={"Swig" : Builder(action="${SWIG_PATH} -o ${TARGETS[0]} -outdir ${SWIGOUTDIR} ${_CPPDEFFLAGS} ${SWIGFLAGS} ${SOURCES[0]}"),
                             "CopyFile" : Builder(action="cp ${SOURCE} ${TARGET}"),
                             },
-                  CCFLAGS="${OPTIMIZE_FLAGS} -std=c++11",
+                  CCFLAGS="${OPTIMIZE_FLAGS} -std=c++11 -Wno-maybe-uninitialized -Wno-unused-variable",
                   SHLIBPREFIX="",
                   LIBS=["python2.7", "boost_filesystem", "boost_serialization", "boost_iostreams", "boost_regex", "boost_system", "boost_program_options", "gomp"],
                   CPPPATH=["${BOOST_INCLUDE}", "src/", "${PYTHON_PATH}"], 
@@ -81,7 +81,7 @@ files = [
     "random",
     "boost_libraries",
     "graphmod_exception",
-    "utils", "alphabet", "alphabets", "probability_vector",
+    "utils", "alphabet", "alphabets", "probability_vector", "log_probability_vector",
     
     #
     # mix-ins
@@ -96,7 +96,7 @@ files = [
     #
     # optimizers
     #
-    "optimizer_interface", "optimizer", "minka_dirichlet_optimizer",
+    "optimizer_interface", "optimizer", "minka_dirichlet_optimizer", "minka_beta_optimizer", "minka_double_dirichlet_optimizer",
     #"minka_beta_optimizer", "minka_double_dirichlet_optimizer",
     
     #
@@ -108,7 +108,7 @@ files = [
     #
     # factors
     #
-    "factor_interface", "factor", "dirichlet_categorical_factor", #"double_dirichlet_categorical_factor", "beta_bernoulli_factor", "hierarchical_dirichlet_categorical_factor",
+    "factor_interface", "factor", "dirichlet_categorical_factor", "beta_bernoulli_factor", "double_dirichlet_categorical_factor", "hierarchical_dirichlet_categorical_factor",
     
     #
     # counts
@@ -186,6 +186,8 @@ instantiates = {
 other_instantiates = [
     ("CountKey", "std::vector<std::pair<std::string, int> >"),
     ("UnsignedIntVector", "std::vector<unsigned int>"),
+    ("StringBoolMap", "std::map<std::string, bool>"),
+    ("matrix_sum", "graphmod::matrix_sum<int>"),
     ]
 
 
@@ -194,12 +196,16 @@ typedefs = [
     ]
 
 module = {
+    "ProbabilityVector" : "ProbabilityVector",
+    "LogProbabilityVector" : "LogProbabilityVector",
+    "StringBoolMap" : "StringBoolMap",
     "FactorGraph" : "_FactorGraph",
     "DenseCounts" : "DenseCounts",
     "SizeVector" : "UnsignedIntVector",
     "Instances" : "Instances",
     "from_conll" : "from_conll",
     "from_lines" : "from_lines",
+    "matrix_sum" : "matrix_sum",
     }
 
 hacks = ["Counts", ""]

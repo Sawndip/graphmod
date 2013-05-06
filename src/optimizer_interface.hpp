@@ -8,7 +8,7 @@ namespace graphmod{
   template<class counts_type>
   class OptimizerInterface{
   public:
-    virtual void optimize(const counts_type&) const = 0;
+    virtual void optimize(const counts_type&, int) const = 0;
   private:
     friend class boost::serialization::access;
     template<class Archive>

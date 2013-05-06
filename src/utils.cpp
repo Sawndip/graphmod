@@ -139,4 +139,41 @@ namespace graphmod{
     }
     return instances;
   }
+
+  double add_logs(double log_a, double log_b){
+    double small, large;
+    if(log_a < log_b){
+      small = log_a;
+      large = log_b;
+    }
+    else{
+      small = log_b;
+      large = log_a;
+    }
+    double neg_diff = small - large;
+    if(neg_diff < -20){
+      return large;
+    }
+    return large + std::log(1.0 + std::exp(neg_diff));
+  }
+
+  double add_logs(std::vector<double> log_probs, double total){
+    if(log_probs.size() == 0){
+      return total;
+    }
+    else{
+      vector<double> temp(log_probs);
+      double next = temp.back();
+      temp.pop_back();
+      if(total == 0.0){
+	return add_logs(temp, next);
+      }
+      else{
+	double new_total = add_logs(total, next);
+	return add_logs(temp, new_total);
+	  //std::accumulate(log_probs.begin(), log_probs.end(), 0.0);
+      }
+    }
+  }
+
 }

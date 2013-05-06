@@ -2,6 +2,7 @@
 #define GRAPHMOD_FACTOR_INTERFACE_HPP
 
 #include "probability_vector.hpp"
+#include "log_probability_vector.hpp"
 #include "variable_interface.hpp"
 #include "boost_libraries.hpp"
 
@@ -14,8 +15,11 @@ namespace graphmod{
   public:
     virtual ~FactorInterface(){
     };
-    virtual double evaluate(counts_type&) const = 0;
-    virtual ProbabilityVector evaluate(counts_type&, const VariableInterface<counts_type>*) const = 0;
+    virtual double density(counts_type&) const = 0;
+    virtual ProbabilityVector densities(counts_type&, const VariableInterface<counts_type>*) const = 0;
+    virtual double log_density(counts_type&) const = 0;
+    virtual LogProbabilityVector log_densities(counts_type&, const VariableInterface<counts_type>*) const = 0;
+    
     virtual void adjust_counts(counts_type&, int) const = 0;
     virtual void compile(counts_type&) const = 0;
   private:

@@ -1,5 +1,5 @@
-#ifndef GM_UTILS_HPP
-#define GM_UTILS_HPP
+#ifndef GRAPHMOD_UTILS_HPP
+#define GRAPHMOD_UTILS_HPP
 
 #include <exception>
 #include <random>
@@ -27,6 +27,9 @@ namespace graphmod{
   graphmod::Instances from_conll(std::vector<std::string>, std::vector<std::string>, int, unsigned int);
 
   graphmod::Instances from_lines(std::string, std::vector<std::string>, unsigned int);
+
+  double add_logs(double, double);
+  double add_logs(std::vector<double>, double=0.0);
 
   template<class key_type, class value_type>
   std::ostream& operator<<(std::ostream& stream, const std::map<key_type, value_type>& object){
@@ -68,6 +71,29 @@ namespace graphmod{
     return out;
   }
 
+  template<class data_type>
+  std::vector<std::vector<data_type> > transpose(const std::vector<std::vector<data_type> > matrix){
+    int nrows = matrix.size(), ncols = matrix[0].size();
+    std::vector<int> row_indices(nrows), col_indices(ncols);
+    std::iota(row_indices.begin(), row_indices.end(), 0);
+    std::iota(col_indices.begin(), col_indices.end(), 0);
+    std::vector<std::vector<data_type> > retval;
+    std::transform(col_indices.begin(), col_indices.end(), std::back_inserter(retval), [&matrix,&row_indices](int old_col){
+	std::vector<data_type> new_row;
+	std::transform(row_indices.begin(), row_indices.end(), std::back_inserter(new_row), [&matrix,old_col](int old_row){
+	    return matrix[old_row][old_col];
+	  }); 
+	return new_row;
+      });
+    return retval;
+  }
+
+  template<class data_type>
+  data_type matrix_sum(const std::vector<std::vector<data_type> > matrix){
+    return std::accumulate(matrix.begin(), matrix.end(), 0.0, [](const data_type total, const std::vector<data_type> row){
+	return total + std::accumulate(row.begin(), row.end(), 0);
+      });
+  }
 
 }
 

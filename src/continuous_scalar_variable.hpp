@@ -14,7 +14,8 @@ namespace graphmod{
     }
     virtual void sample_implementation(counts_type&){
     }
-    double log_likelihood(counts_type&){
+    double log_likelihood(counts_type&) const{
+      throw GraphmodException("unimplemented: ContinuousScalarVariable::log_likelihood");
     }
     virtual std::string get_name() const{
       return "ContinuousScalarVariable";

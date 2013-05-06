@@ -30,6 +30,9 @@ namespace graphmod{
     bool is_symmetric() const{
       return _symmetric;
     }
+    double log_likelihood(counts_type&) const{
+      throw GraphmodException("unimplemented: ContinuousVectorVariable::log_likelihood");
+    }
     //void add_optimizer(OptimizerInterface<std::vector<double> >*)
   private:
     friend class boost::serialization::access;

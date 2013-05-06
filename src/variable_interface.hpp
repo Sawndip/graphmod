@@ -16,6 +16,7 @@ namespace graphmod{
     virtual void add_neighbor(graphmod::FactorInterface<counts_type>*) = 0;
     virtual void set_observed(bool) = 0;
     virtual bool get_observed() const = 0;
+    virtual double log_likelihood(counts_type&) const = 0;
   private:
     friend class boost::serialization::access;
     template<class Archive>
