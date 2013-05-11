@@ -10,7 +10,6 @@ vars = Variables("custom.py")
 vars.AddVariables(
     ("OUTPUT_WIDTH", "", 130),
 
-    ("SWIG_PATH", "", "/usr/bin/swig"),
     ("BOOST_INCLUDE", "", "/usr/include"),
     ("BOOST_LIB", "", "/usr/lib"),
     ("PYTHON_PATH", "", "/usr/include/python2.7"),
@@ -20,6 +19,7 @@ vars.AddVariables(
     ("DEBUG_FLAGS", "", "-O0 -ggdb -Wall"),
 
     ("LOCAL_CXX", "", ""),
+    ("LOCAL_SWIG", "", "/usr/bin/swig"),
 
     # parallel processing options
     BoolVariable("USE_MPI", "", False),
@@ -43,7 +43,7 @@ logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S
 
 env = Environment(variables=vars, ENV=os.environ, TARFLAGS="-c -z", TARSUFFIX=".tgz",
                   tools=["default", "textfile"] + [x.TOOLS_ADD for x in []],
-                  BUILDERS={"Swig" : Builder(action="${SWIG_PATH} -o ${TARGETS[0]} -outdir ${SWIGOUTDIR} ${_CPPDEFFLAGS} ${SWIGFLAGS} ${SOURCES[0]}"),
+                  BUILDERS={"Swig" : Builder(action="${LOCAL_SWIG} -o ${TARGETS[0]} -outdir ${SWIGOUTDIR} ${_CPPDEFFLAGS} ${SWIGFLAGS} ${SOURCES[0]}"),
                             "CopyFile" : Builder(action="cp ${SOURCE} ${TARGET}"),
                             },
                   CCFLAGS="${OPTIMIZE_FLAGS} -std=c++11 -Wno-maybe-uninitialized -Wno-unused-variable",
@@ -106,13 +106,13 @@ files = [
     #
     # variables
     #
-    "variable_interface", "variable", "continuous_vector_variable", "continuous_matrix_variable", "categorical_variable", "mapped_categorical_variable", "string_variable",
+    "variable_interface", "variable", "continuous_vector_variable", "continuous_matrix_variable", "categorical_variable", "mapped_categorical_variable",
     #"continuous_vector_variable", "continuous_matrix_variable", "discrete_scalar_variable", "discrete_vector_variable", "discrete_matrix_variable",
     
     #
     # factors
     #
-    "factor_interface", "factor", "dirichlet_categorical_factor", "beta_bernoulli_factor", "double_dirichlet_categorical_factor", "hierarchical_dirichlet_categorical_factor", "fst_factor",
+    "factor_interface", "factor", "dirichlet_categorical_factor", "beta_bernoulli_factor", "double_dirichlet_categorical_factor", "hierarchical_dirichlet_categorical_factor",
     
     #
     # counts
