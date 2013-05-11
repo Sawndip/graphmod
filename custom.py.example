@@ -1,3 +1,7 @@
 # SWIG_PATH = "/usr/bin/swig"
+# CXX = "/usr/bin/g++"
+# PYTHON_PATH = "/usr/include/python2.7"
+# BOOST_INCLUDE
+# BOOST_LIB
 # USE_MPI = False
 # USE_OMP = False

@@ -19,6 +19,8 @@ vars.AddVariables(
     ("OPTIMIZE_FLAGS", "", "-O3 -ffast-math -fno-builtin -pipe -march=native -msse2 -Wall ${USE_OMP and '-fopenmp' or ''}"),
     ("DEBUG_FLAGS", "", "-O0 -ggdb -Wall"),
 
+    ("LOCAL_CXX", "", ""),
+
     # parallel processing options
     BoolVariable("USE_MPI", "", False),
     ("MPICXX", "", "/usr/bin/mpic++"),
@@ -44,18 +46,18 @@ env = Environment(variables=vars, ENV=os.environ, TARFLAGS="-c -z", TARSUFFIX=".
                   BUILDERS={"Swig" : Builder(action="${SWIG_PATH} -o ${TARGETS[0]} -outdir ${SWIGOUTDIR} ${_CPPDEFFLAGS} ${SWIGFLAGS} ${SOURCES[0]}"),
                             "CopyFile" : Builder(action="cp ${SOURCE} ${TARGET}"),
                             },
-                  #CCFLAGS="${OPTIMIZE_FLAGS} -std=c++11 -Wno-uninitialized -Wno-unused-variable -Wno-self-assign",
                   CCFLAGS="${OPTIMIZE_FLAGS} -std=c++11 -Wno-maybe-uninitialized -Wno-unused-variable",
                   SHLIBPREFIX="",
                   LIBS=["python2.7", "boost_filesystem", "boost_serialization", "boost_iostreams", "boost_regex", "boost_system", "boost_program_options", "gomp"],
                   CPPPATH=["${BOOST_INCLUDE}", "src/", "${PYTHON_PATH}"], 
                   LIBPATH=["${BOOST_LIB}"],
-                  #CXX="/usr/bin/clang++",
-                  CXX="/usr/bin/g++",
                   LINKFLAGS="${OPTIMIZE_FLAGS} -std=c++11",
                   SWIGFLAGS="-O -threads -c++ -python",
                   SWIGOUTDIR="work/",
                   )
+
+if env["LOCAL_CXX"]:
+    env.Replace(CXX=env["LOCAL_CXX"])
 
 if env["USE_MPI"]:
     env.Append(CPPDEFINES = "GRAPHMOD_USE_MPI")
