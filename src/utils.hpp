@@ -19,8 +19,26 @@
 
 namespace graphmod{
 
+  template<class object_type>
+  std::string get_id(object_type* object){
+    std::stringstream ss;
+    ss << object;
+    std::string retval = ss.str();
+    std::string from("0123456789");
+    std::string to("ABCDEFGHIJ");
+    for(unsigned int i=0; i<retval.size(); i++){
+      for(unsigned int j=0; j<from.size(); j++){
+        if(retval[i] == from[j]){
+          retval[i] = to[j];
+        }
+      }
+    }
+    return retval;
+  }
+
   std::map<std::string, std::string> collect_properties(boost::property_tree::ptree&);
 
+  std::string indent(std::string, int);
 
   int find_range(double, std::vector<double>);
 

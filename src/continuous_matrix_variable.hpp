@@ -19,6 +19,9 @@ namespace graphmod{
     }
     virtual ~ContinuousMatrixVariable(){
     }
+    std::string name() const{
+      return "ContinuousMatrixVariable";
+    }
     void compile(counts_type&){
     }
     void sample_implementation(counts_type&){

@@ -32,8 +32,12 @@ namespace graphmod{
     virtual ~DoubleDirichletCategoricalFactor(){
     }
 
-    static inline double log_density_function(const double prior_sum, const double observation_prior, const int indexA_indexB_count, const int indexA_indexB_observation_count){
-      return std::log((indexA_indexB_observation_count + observation_prior) / (indexA_indexB_count + prior_sum));
+    static std::string name(){
+      return "DoubleDirichletCategorical";
+    }
+
+    static inline double log_density_function(const double prior_sum, const double observation_prior, const int marginal_count, const int observation_count){
+      return std::log((observation_count + observation_prior) / (marginal_count + prior_sum));
     }
 
     void compile_implementation(counts_type& counts) const{
@@ -52,76 +56,64 @@ namespace graphmod{
     }
 
     double log_density_implementation(counts_type& counts) const{
-      std::string indexA_domain_name = _indexA->get_domain_name(), indexB_domain_name = _indexB->get_domain_name(), observation_domain_name = _observation->get_domain_name();
-      unsigned int indexA_value = _indexA->get_value(), indexB_value = _indexB->get_value(), observation_value = _observation->get_value();
-      auto& prior = _prior->get_value();
-      int index_observation_count = counts(std::vector<std::string>({indexA_domain_name, indexB_domain_name, observation_domain_name}), std::vector<unsigned int>({indexA_value, indexB_value, observation_value}));
-      int index_count = counts(std::vector<std::string>({indexA_domain_name, indexB_domain_name}), std::vector<unsigned int>({indexA_value, indexB_value}));
-      double prior_sum = accumulate(prior.begin(), prior.end(), 0.0);
-      return log_density_function(prior_sum, prior[observation_value], index_count, index_observation_count);
+      return log_densities_implementation(counts, _indexA).at(_indexA->get_value());
     }
 
     LogProbabilityVector log_densities_implementation(counts_type& counts, const VariableInterface<counts_type>* variable) const{
       LogProbabilityVector log_probs;
       std::string indexA_domain_name = _indexA->get_domain_name(), indexB_domain_name = _indexB->get_domain_name(), observation_domain_name = _observation->get_domain_name();
       if(variable == _indexA){
-	/*
 	int size = _indexA->get_domain_size();
+	int indexB_value = _indexB->get_value();
 	int observation_value = _observation->get_value();
-	if(observation_value == -1){
+	if(observation_value == -1 or indexB_value == -1){
 	  return LogProbabilityVector(size);
 	}
-	auto index_by_observation = counts(index_domain_name, observation_domain_name);
-	std::vector<int> index_totals;
-	std::transform(index_by_observation.begin(), index_by_observation.end(), std::back_inserter(index_totals), [](std::vector<int>& row){ 
-	    return std::accumulate(row.begin(), row.end(), 0);
-	  });
 	auto& prior_values = _prior->get_value();
-	double prior_value = prior_values[observation_value];
-	double prior_total = std::accumulate(prior_values.begin(), prior_values.end(), 0.0);
-	std::transform(index_by_observation.begin(), index_by_observation.end(), index_totals.begin(), std::back_inserter(log_probs),
-		       [this,prior_value,prior_total,observation_value](std::vector<int>& counts, int totals){
-			 return log_density_function(prior_total, prior_value, totals, counts[observation_value]);
-		       });
-	*/
+	double observation_prior = prior_values[observation_value];
+	double prior_sum = std::accumulate(prior_values.begin(), prior_values.end(), 0.0);
+	auto marginal_counts = counts(indexA_domain_name, indexB_domain_name);
+	auto observation_counts = counts(indexA_domain_name, indexB_domain_name, observation_domain_name);
+	std::vector<int> indices(size);
+	std::iota(indices.begin(), indices.end(), 0);
+	std::transform(indices.begin(), indices.end(), std::back_inserter(log_probs), [&](int indexA_value){
+	    return log_density_function(prior_sum, observation_prior, marginal_counts[indexA_value][indexB_value], observation_counts[indexA_value][indexB_value][observation_value]);
+	  });
       }
       else if(variable == _indexB){
-	/*
 	int size = _indexB->get_domain_size();
+	int indexA_value = _indexA->get_value();
 	int observation_value = _observation->get_value();
-	if(observation_value == -1){
+	if(observation_value == -1 or indexA_value == -1){
 	  return LogProbabilityVector(size);
 	}
-	auto index_by_observation = counts(index_domain_name, observation_domain_name);
-	std::vector<int> index_totals;
-	std::transform(index_by_observation.begin(), index_by_observation.end(), std::back_inserter(index_totals), [](std::vector<int>& row){ 
-	    return std::accumulate(row.begin(), row.end(), 0);
-	  });
 	auto& prior_values = _prior->get_value();
-	double prior_value = prior_values[observation_value];
-	double prior_total = std::accumulate(prior_values.begin(), prior_values.end(), 0.0);
-	std::transform(index_by_observation.begin(), index_by_observation.end(), index_totals.begin(), std::back_inserter(log_probs),
-		       [this,prior_value,prior_total,observation_value](std::vector<int>& counts, int totals){
-			 return log_density_function(prior_total, prior_value, totals, counts[observation_value]);
-		       });
-	*/
+	double observation_prior = prior_values[observation_value];
+	double prior_sum = std::accumulate(prior_values.begin(), prior_values.end(), 0.0);
+	auto marginal_counts = counts(indexA_domain_name, indexB_domain_name);
+	auto observation_counts = counts(indexA_domain_name, indexB_domain_name, observation_domain_name);
+	std::vector<int> indices(size);
+	std::iota(indices.begin(), indices.end(), 0);
+	std::transform(indices.begin(), indices.end(), std::back_inserter(log_probs), [&](int indexB_value){
+	    return log_density_function(prior_sum, observation_prior, marginal_counts[indexA_value][indexB_value], observation_counts[indexA_value][indexB_value][observation_value]);
+	  });
       }
       else if(variable == _observation){
-	/*
-	int size = _index->get_domain_size();
-	int index_value = _index->get_value();
-	if(index_value == -1){
+	int size = _observation->get_domain_size();
+	int indexA_value = _indexA->get_value();
+	int indexB_value = _indexB->get_value();
+	if(indexA_value == -1 or indexB_value == -1){
 	  return LogProbabilityVector(size);
 	}
-	auto observation_counts = counts(index_domain_name, observation_domain_name)[index_value];
 	auto& prior_values = _prior->get_value();
 	double prior_sum = std::accumulate(prior_values.begin(), prior_values.end(), 0.0);
-	int index_sum = std::accumulate(observation_counts.begin(), observation_counts.end(), 0);
-	std::transform(observation_counts.begin(), observation_counts.end(), prior_values.begin(), std::back_inserter(log_probs),
-		       [this,index_sum,prior_sum](int ind_obs_counts, double prior_value){
-			 return log_density_function(prior_sum, prior_value, index_sum, ind_obs_counts);
-		       });
-	*/
+	auto marginal_counts = counts(indexA_domain_name, indexB_domain_name);
+	auto observation_counts = counts(indexA_domain_name, indexB_domain_name, observation_domain_name);
+	std::vector<int> indices(size);
+	std::iota(indices.begin(), indices.end(), 0);
+	std::transform(indices.begin(), indices.end(), prior_values.begin(), std::back_inserter(log_probs), [&](int observation_value, double observation_prior){
+	    return log_density_function(prior_sum, observation_prior, marginal_counts[indexA_value][indexB_value], observation_counts[indexA_value][indexB_value][observation_value]);
+	  });
       }
       return log_probs;
     }

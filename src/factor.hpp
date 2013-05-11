@@ -29,6 +29,17 @@ namespace graphmod{
     virtual void compile(counts_type& counts) const{
       static_cast<const Implementation*>(this)->compile_implementation(counts);
     }
+    static std::string name(){
+      return Implementation::name();
+    }
+    virtual std::string xml() const{
+      std::stringstream ss;
+      ss << "<node id='" << get_id(this) << "'>" << std::endl;
+      ss << "<data key='type'>Factor</data>" << std::endl;
+      ss << "<data key='name'>" << name() << "</data>" << std::endl;
+      ss << "</node>";
+      return ss.str();
+    }
   private:
     friend class boost::serialization::access;
     template<class Archive>

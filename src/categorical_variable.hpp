@@ -59,6 +59,16 @@ namespace graphmod{
     virtual ~CategoricalVariable(){
     }
 
+    std::string name() const{
+      if(get_value_copy() == -1){
+	return get_domain_name();
+      }
+      else{
+	return lookup(get_value_copy());
+      }
+      return "CategoricalVariable";
+    }
+
     void compile(counts_type& counts){
       if(_lower == -1){
 	_lower = 0;
@@ -100,6 +110,7 @@ namespace graphmod{
     virtual std::string get_name() const{
       return "CategoricalVariable";
     }
+
   private:
     friend class boost::serialization::access;
     template<class Archive>

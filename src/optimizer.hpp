@@ -11,6 +11,13 @@ namespace graphmod{
     virtual void optimize(const counts_type& counts, int iterations) const{
       static_cast<const Implementation*>(this)->optimize_implementation(counts, iterations);
     }
+    virtual std::string xml() const{
+      std::stringstream ss;
+      ss << "<node id='" << get_id(this) << "'>" << std::endl;
+      ss << "<data key='type'>Optimizer</data>" << std::endl;
+      ss << "</node>";
+      return ss.str();
+    }
   private:
     friend class boost::serialization::access;
     template<class Archive>

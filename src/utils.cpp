@@ -6,6 +6,10 @@ namespace graphmod{
   using namespace std;
   using namespace boost;
 
+  std::string indent(std::string s, int d){
+    return s;
+  }
+
   bool function_tag(char c){
     if(c == 'I' || c == 'D' || c == 'P' || c == 'T'){
       return true;

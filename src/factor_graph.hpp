@@ -259,9 +259,7 @@ namespace graphmod{
       ss << "FactorGraph: " << _variables.size() << " variables, " << _factors.size() << " factors, " << _optimizers.size() << " optimizers";
       return ss.str();
     }
-    std::string xml() const{
-      return "</xml>";
-    }
+
     void save(std::string file_name){
       namespace io = boost::iostreams;
       namespace fs = boost::filesystem;
@@ -283,6 +281,35 @@ namespace graphmod{
 	boost::archive::binary_oarchive arch(out);
 	arch << BOOST_SERIALIZATION_NVP(*this);
       }
+    }
+    std::vector<VariableInterface<counts_type>*> get_variables(){
+      return _variables;
+    }
+    std::vector<FactorInterface<counts_type>*> get_factors(){
+      return _factors;
+    }
+    std::vector<OptimizerInterface<counts_type>*> get_optimizers(){
+      return _optimizers;
+    }
+    std::string xml() const{
+      std::stringstream ss;
+      ss << "<graphml>" << std::endl<< "\t<graph>" << std::endl;
+      for(auto v: _variables){
+	ss << indent(v->xml(), 2) << std::endl;
+      }
+      for(auto f: _factors){
+	ss << indent(f->xml(), 2) << std::endl;
+      }
+      for(auto v: _variables){
+	for(auto f: v->get_neighbors()){
+	  ss << "<edge source='" << get_id(v) << "' target='" << get_id(f) << "' />" << std::endl;
+	}
+      }
+      //for(auto o: _optimizers){
+      //ss << indent(o->xml(), 2) << std::endl;
+      //}
+      ss << "\t</graph>"<< std::endl << "</graphml>" << std::endl;
+      return ss.str();
     }
 
   private:

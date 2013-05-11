@@ -78,9 +78,15 @@ namespace graphmod{
     }
 
     void optimize_implementation(const counts_type& counts, int iterations) const{
-      throw GraphmodException("unimplemented: MinkaDoubleDirichletOptimizer::optimize_implementation");
-      //_symmetric ? _node->set_value(symmetric_optimized(_node->get_value_copy(), counts(_group_name, _observation_name), iterations)) : 
-      //_node->set_value(asymmetric_optimized(_node->get_value_copy(), counts(_group_name, _observation_name), iterations));
+      auto groupA_groupB_observation_counts = counts(_groupA_name, _groupB_name, _observation_name);
+      std::vector<std::vector<int> > group_observation_counts;
+      for(auto groupB_observation_counts: groupA_groupB_observation_counts){
+	for(auto observation_counts: groupB_observation_counts){
+	  group_observation_counts.push_back(observation_counts);
+	}
+      }
+      _symmetric ? _node->set_value(symmetric_optimized(_node->get_value_copy(), group_observation_counts, iterations)) : 
+	_node->set_value(asymmetric_optimized(_node->get_value_copy(), group_observation_counts, iterations));
     }
 
 

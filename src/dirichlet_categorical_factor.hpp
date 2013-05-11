@@ -30,6 +30,10 @@ namespace graphmod{
     virtual ~DirichletCategoricalFactor(){
     }
 
+    static std::string name(){
+      return "DirichletCategorical";
+    }
+
     static inline double log_density_function(const double prior_sum, const double observation_prior, const int index_count, const int index_observation_count){
       return std::log((index_observation_count + observation_prior) / (index_count + prior_sum));
     }
@@ -44,6 +48,8 @@ namespace graphmod{
     }
 
     double log_density_implementation(counts_type& counts) const{
+      return log_densities_implementation(counts, _index).at(_index->get_value());
+      /*
       std::string index_domain_name = _index->get_domain_name(), observation_domain_name = _observation->get_domain_name();
       unsigned int index_value = _index->get_value(), observation_value = _observation->get_value();
       auto& prior = _prior->get_value();
@@ -52,6 +58,7 @@ namespace graphmod{
       int index_count = std::accumulate(x[index_value].begin(), x[index_value].end(), 0);
       double prior_sum = accumulate(prior.begin(), prior.end(), 0.0);
       return log_density_function(prior_sum, prior[observation_value], index_count, index_observation_count);
+      */
     }
 
     LogProbabilityVector log_densities_implementation(counts_type& counts, const VariableInterface<counts_type>* variable) const{

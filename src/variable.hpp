@@ -25,15 +25,33 @@ namespace graphmod{
     virtual void add_neighbor(graphmod::FactorInterface<counts_type>* neighbor){
       _neighbors.push_back(neighbor);
     }
+    std::string name() const{
+      return static_cast<const Implementation*>(this)->name();
+    }
+    virtual std::string xml() const{
+      std::stringstream ss;
+      ss << "<node id='" << get_id(this) << "'>" << std::endl;
+      ss << "<data key='type'>Variable</data>" << std::endl;
+      ss << "<data key='name'>" << name() << "</data>" << std::endl;
+      ss << "</node>";
+      return ss.str();
+    }
+    virtual std::string get_name() const{
+      return _name;
+    }
+    virtual void set_name(std::string name){
+      _name = name;
+    }
   private:
     friend class boost::serialization::access;
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version){
       ar & boost::serialization::base_object<VariableInterface<counts_type> >(*this);
-      ar & _observed & _neighbors;
+      ar & _observed & _neighbors & _name;
     }
     bool _observed;
     std::vector<FactorInterface<counts_type>*> _neighbors;
+    std::string _name;
   };
 }
 

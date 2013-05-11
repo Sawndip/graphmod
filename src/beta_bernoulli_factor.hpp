@@ -34,6 +34,10 @@ namespace graphmod{
     virtual ~BetaBernoulliFactor(){
     }
 
+    static std::string name(){
+      return "BetaBernoulli";
+    }
+
     void compile_implementation(counts_type& counts) const{
       if(_observation->get_domain_size() != _prior->get_value().size()){
 	double value = _prior->get_value()[0][0];
@@ -44,6 +48,7 @@ namespace graphmod{
 	std::fill(_prior->get_value()[1].begin(), _prior->get_value()[1].end(), value);
       }
       counts.add_target({_index->get_domain_name(), _observation->get_domain_name()}, {_index->get_domain_size(), _observation->get_domain_size()});
+      counts.add_target({_index->get_domain_name()}, {_index->get_domain_size()});
     }
 
     static inline double log_density_function(std::vector<std::vector<double> > priors, int index_total, std::vector<int> index_observation_counts, std::map<int, bool> observations){
@@ -55,17 +60,11 @@ namespace graphmod{
     }
 
     double log_density_implementation(counts_type& counts) const{
-      std::string index_name = _index->get_domain_name(), obs_name = _observation->get_domain_name();
-      int index_value = _index->get_value();
-      auto ind_by_obs = counts(index_name, obs_name);
-      auto prior_values = _prior->get_value();
-      auto obs_value = _observation->get_value();
-      int index_total = 0;
-      return log_density_function(prior_values, index_total, ind_by_obs[index_value], obs_value);
+      return log_densities_implementation(counts, _index).at(_index->get_value());
     }
 
     LogProbabilityVector log_densities_implementation(counts_type& counts, const VariableInterface<counts_type>* variable) const{
-      LogProbabilityVector log_probs;
+      std::vector<double> log_probs;
       if(variable == _index){
 	std::string index_domain_name = _index->get_domain_name(), observation_domain_name = _observation->get_domain_name();
 	auto index_by_observation = counts(index_domain_name, observation_domain_name);
@@ -84,7 +83,7 @@ namespace graphmod{
       else{
 	throw GraphmodException("unimplemented: vector density for BetaBernoulli over observation");
       }
-      return log_probs;
+      return LogProbabilityVector(log_probs);
     }
     
     void adjust_counts_implementation(counts_type& counts, int weight) const{      
@@ -92,7 +91,7 @@ namespace graphmod{
       int index_value = _index->get_value();
       if(index_value != -1){
 	std::string index_domain_name = _index->get_domain_name(), obs_domain_name = _observation->get_domain_name();
-	//counts.increment({index_domain_name}, {index_value}, weight);
+	counts.increment({index_domain_name}, {index_value}, weight);
 	for(auto opair: _observation->get_value()){
 	  counts.increment({index_domain_name, obs_domain_name}, {index_value, opair.first}, weight);
 	}

@@ -27,6 +27,9 @@ namespace graphmod{
     std::string get_name() const{
       return "ContinuousVectorVariable";
     }
+    std::string name() const{
+      return "ContinuousVectorVariable";
+    }
     bool is_symmetric() const{
       return _symmetric;
     }

@@ -16,7 +16,7 @@ vars.AddVariables(
     ("PYTHON_PATH", "", "/usr/include/python2.7"),
 
     BoolVariable("DEBUG", "", False),
-    ("OPTIMIZE_FLAGS", "", "-O3 -ffast-math -fno-builtin -pipe -march=native -mfpmath=sse -msse2 -Wall ${USE_OMP and '-fopenmp' or ''}"),
+    ("OPTIMIZE_FLAGS", "", "-O3 -ffast-math -fno-builtin -pipe -march=native -msse2 -Wall ${USE_OMP and '-fopenmp' or ''}"),
     ("DEBUG_FLAGS", "", "-O0 -ggdb -Wall"),
 
     # parallel processing options
@@ -44,11 +44,13 @@ env = Environment(variables=vars, ENV=os.environ, TARFLAGS="-c -z", TARSUFFIX=".
                   BUILDERS={"Swig" : Builder(action="${SWIG_PATH} -o ${TARGETS[0]} -outdir ${SWIGOUTDIR} ${_CPPDEFFLAGS} ${SWIGFLAGS} ${SOURCES[0]}"),
                             "CopyFile" : Builder(action="cp ${SOURCE} ${TARGET}"),
                             },
+                  #CCFLAGS="${OPTIMIZE_FLAGS} -std=c++11 -Wno-uninitialized -Wno-unused-variable -Wno-self-assign",
                   CCFLAGS="${OPTIMIZE_FLAGS} -std=c++11 -Wno-maybe-uninitialized -Wno-unused-variable",
                   SHLIBPREFIX="",
                   LIBS=["python2.7", "boost_filesystem", "boost_serialization", "boost_iostreams", "boost_regex", "boost_system", "boost_program_options", "gomp"],
                   CPPPATH=["${BOOST_INCLUDE}", "src/", "${PYTHON_PATH}"], 
                   LIBPATH=["${BOOST_LIB}"],
+                  #CXX="/usr/bin/clang++",
                   CXX="/usr/bin/g++",
                   LINKFLAGS="${OPTIMIZE_FLAGS} -std=c++11",
                   SWIGFLAGS="-O -threads -c++ -python",
@@ -102,13 +104,13 @@ files = [
     #
     # variables
     #
-    "variable_interface", "variable", "continuous_vector_variable", "continuous_matrix_variable", "categorical_variable", "mapped_categorical_variable", 
+    "variable_interface", "variable", "continuous_vector_variable", "continuous_matrix_variable", "categorical_variable", "mapped_categorical_variable", "string_variable",
     #"continuous_vector_variable", "continuous_matrix_variable", "discrete_scalar_variable", "discrete_vector_variable", "discrete_matrix_variable",
     
     #
     # factors
     #
-    "factor_interface", "factor", "dirichlet_categorical_factor", "beta_bernoulli_factor", "double_dirichlet_categorical_factor", "hierarchical_dirichlet_categorical_factor",
+    "factor_interface", "factor", "dirichlet_categorical_factor", "beta_bernoulli_factor", "double_dirichlet_categorical_factor", "hierarchical_dirichlet_categorical_factor", "fst_factor",
     
     #
     # counts
@@ -183,17 +185,24 @@ instantiates = {
     }
 
 
+typedefs = [
+    ("_VariableInterface", "graphmod::VariableInterface<graphmod::DenseCounts>"),
+    ("_FactorInterface", "graphmod::FactorInterface<graphmod::DenseCounts>"),
+    ("_OptimizerInterface", "graphmod::OptimizerInterface<graphmod::DenseCounts>"),
+    ]
+
+
 other_instantiates = [
     ("CountKey", "std::vector<std::pair<std::string, int> >"),
     ("UnsignedIntVector", "std::vector<unsigned int>"),
     ("StringBoolMap", "std::map<std::string, bool>"),
     ("matrix_sum", "graphmod::matrix_sum<int>"),
+    ("Cube", "std::vector<std::vector<std::vector<int> > >"),
+    ("VariableVector", "std::vector<graphmod::VariableInterface<graphmod::DenseCounts>*>"),
+    ("FactorVector", "std::vector<graphmod::FactorInterface<graphmod::DenseCounts>*>"),
+    ("OptimizerVector", "std::vector<graphmod::OptimizerInterface<graphmod::DenseCounts>*>"),
     ]
 
-
-typedefs = [
-    ("_FactorInterface", "graphmod::FactorInterface<graphmod::DenseCounts>"),
-    ]
 
 module = {
     "ProbabilityVector" : "ProbabilityVector",

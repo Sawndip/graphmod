@@ -33,6 +33,14 @@ namespace graphmod{
     }
     virtual ~MappedCategoricalVariable(){
     }
+    std::string name() const{
+      std::stringstream ss;
+      for(auto ppair: get_value_copy()){
+	ss << lookup(ppair.first) << " ";
+      }
+      return ss.str();
+      //return "MappedCategoricalVariable";
+    }
     void compile(counts_type& counts){
     }
     ProbabilityVector log_densities(counts_type& counts) const{
