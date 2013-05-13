@@ -185,6 +185,21 @@ namespace graphmod{
     ContinuousMatrixVariable<counts_type>* add_continuous_matrix(std::vector<std::vector<double> > value){
       return add_variable<ContinuousMatrixVariable<counts_type> >(value);
     }
+
+    //
+    // get a variable
+    //
+    template<class node_type>
+    node_type* get_variable(std::string name){
+      for(auto v: _variables){
+	if(v->get_name() == name){
+	  return dynamic_cast<node_type*>(v);
+	}
+      }
+      std::stringstream ss;
+      ss << "Could not find variable '" << name << "'";
+      throw GraphmodException(ss.str());
+    }
     
     //
     // Methods

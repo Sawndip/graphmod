@@ -38,6 +38,8 @@ INSTANTIATES
 
 OTHER_INSTANTIATES
 
+INLINES
+
 %pythoncode %{
   _cgraphmod.initialize_random();
 %}

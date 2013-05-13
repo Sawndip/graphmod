@@ -154,6 +154,7 @@ instantiates = {
     "variable" : [
         ("_CategoricalVariable", "graphmod::Variable<graphmod::CategoricalVariable<graphmod::Counts<graphmod::DenseCounts> >, graphmod::Counts<graphmod::DenseCounts> >"),
         ("_ContinuousVectorVariable", "graphmod::Variable<graphmod::ContinuousVectorVariable<graphmod::Counts<graphmod::DenseCounts> >, graphmod::Counts<graphmod::DenseCounts> >"),
+        ("_ContinuousMatrixVariable", "graphmod::Variable<graphmod::ContinuousMatrixVariable<graphmod::Counts<graphmod::DenseCounts> >, graphmod::Counts<graphmod::DenseCounts> >"),
         ],
     "factor" : [
         ("_DirichletCategoricalFactor", "graphmod::Factor<graphmod::DirichletCategoricalFactor<graphmod::Counts<graphmod::DenseCounts> >, graphmod::Counts<graphmod::DenseCounts> >"),
@@ -200,6 +201,11 @@ other_instantiates = [
     ("StringBoolMap", "std::map<std::string, bool>"),
     ("matrix_sum", "graphmod::matrix_sum<int>"),
     ("Cube", "std::vector<std::vector<std::vector<int> > >"),
+    ("_Variable", "graphmod::VariableInterface<graphmod::DenseCounts>"),
+    ("___ContinuousVectorVariable", "graphmod::Variable<graphmod::ContinuousVectorVariable<graphmod::DenseCounts>, graphmod::DenseCounts>"),
+    ("___ContinuousMatrixVariable", "graphmod::Variable<graphmod::ContinuousMatrixVariable<graphmod::DenseCounts>, graphmod::DenseCounts>"),
+    ("__ContinuousVectorVariable", "graphmod::ContinuousVectorVariable<graphmod::DenseCounts>"),
+    ("__ContinuousMatrixVariable", "graphmod::ContinuousMatrixVariable<graphmod::DenseCounts>"),
     ("VariableVector", "std::vector<graphmod::VariableInterface<graphmod::DenseCounts>*>"),
     ("FactorVector", "std::vector<graphmod::FactorInterface<graphmod::DenseCounts>*>"),
     ("OptimizerVector", "std::vector<graphmod::OptimizerInterface<graphmod::DenseCounts>*>"),
@@ -217,9 +223,32 @@ module = {
     "from_conll" : "from_conll",
     "from_lines" : "from_lines",
     "matrix_sum" : "matrix_sum",
+    "cast" : "cast",
     }
 
 hacks = ["Counts", ""]
+
+inlines = """
+//namespace graphmod{
+//  %template(getvector) FactorGraph<DenseCounts>::get_variable<ContinuousVectorVariable<DenseCounts> >;
+//}
+//%template(getmatrix) graphmod::FactorGraph<graphmod::DenseCounts>::get_variable<graphmod::ContinuousMatrixVariable<graphmod::DenseCounts> >;
+%extend graphmod::FactorGraph<graphmod::DenseCounts>{
+public:
+%template(getvector) get_variable<ContinuousVectorVariable<DenseCounts> >;
+%template(getmatrix) get_variable<ContinuousMatrixVariable<DenseCounts> >;
+//int x(){ return 1; }
+};
+
+%inline %{
+  graphmod::VariableInterface<graphmod::DenseCounts>* cast(graphmod::ContinuousVectorVariable<graphmod::DenseCounts>* d){
+    return dynamic_cast<graphmod::VariableInterface<graphmod::DenseCounts>*>(d);
+  }
+  graphmod::VariableInterface<graphmod::DenseCounts>* cast(graphmod::ContinuousMatrixVariable<graphmod::DenseCounts>* d){
+    return dynamic_cast<graphmod::VariableInterface<graphmod::DenseCounts>*>(d);
+  }
+%}
+"""
 
 no_wrap = []
 headers = ["%s.hpp" % x for x in files if x not in no_wrap]
@@ -232,6 +261,7 @@ swig_file = env.Substfile("src/graphmod.i", "data/graphmod_template.i", SUBST_DI
         "TYPEDEFS" : "\n".join(["typedef %s %s;" % (v, k) for k, v in typedefs]), 
         "INSTANTIATES" : "\n".join(['%%include "%s.hpp"\n%s' % (name, "\n".join(['%%template(%s) %s;' % (k, v) for k, v in instantiates.get(name, [])])) for name in files]),
         "OTHER_INSTANTIATES" : "\n".join(['%%template(%s) %s;' % (k, v) for k, v in other_instantiates]),
+        "INLINES" : inlines,
         })
 
 py_file = env.Textfile("work/graphmod.py", ["from cgraphmod import %s as %s" % (v, k) for k, v in module.iteritems()])

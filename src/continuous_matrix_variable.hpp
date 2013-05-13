@@ -29,9 +29,6 @@ namespace graphmod{
     double log_likelihood(counts_type&) const{
       throw GraphmodException("unimplemented: ContinuousMatrixVariable::log_likelihood");
     }
-    std::string get_name() const{
-      return "ContinuousMatrixVariable";
-    }
     bool is_symmetric() const{
       return _symmetric;
     }

@@ -24,9 +24,9 @@ namespace graphmod{
     }
     void sample_implementation(counts_type&){
     }
-    std::string get_name() const{
-      return "ContinuousVectorVariable";
-    }
+    //std::string get_name() const{
+    //  return "ContinuousVectorVariable";
+    //}
     std::string name() const{
       return "ContinuousVectorVariable";
     }
