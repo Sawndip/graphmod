@@ -13,6 +13,7 @@
 #include "double_dirichlet_categorical_factor.hpp"
 #include "hierarchical_dirichlet_categorical_factor.hpp"
 #include "beta_bernoulli_factor.hpp"
+#include "truncated_beta_bernoulli_factor.hpp"
 
 #include "variable_interface.hpp"
 #include "categorical_variable.hpp"
@@ -116,6 +117,12 @@ namespace graphmod{
 							 CategoricalVariable<counts_type>* index, 
 							 MappedCategoricalVariable<counts_type>* observation){
       return add_factor<BetaBernoulliFactor<counts_type> >(prior, index, observation);
+    }
+
+    TruncatedBetaBernoulliFactor<counts_type>* add_truncated_beta_bernoulli(ContinuousMatrixVariable<counts_type>* prior, 
+									    CategoricalVariable<counts_type>* index, 
+									    MappedCategoricalVariable<counts_type>* observation){
+      return add_factor<TruncatedBetaBernoulliFactor<counts_type> >(prior, index, observation);
     }
 
     //
@@ -246,6 +253,42 @@ namespace graphmod{
       return _counts;
     }
 
+    static void collect_helperA(std::vector<int>& counts, std::vector<FactorInterface<counts_type>*> factors, std::string name){
+      //std::cout << "Factors: " << factors.size() << std::endl;
+      for(auto factor: factors){
+	collect_helperB(counts, factor->get_children(), name);
+      }
+    }
+
+    static void collect_helperB(std::vector<int>& counts, std::vector<VariableInterface<counts_type>*> variables, std::string name){
+      //std::cout << "Variables: " << variables.size() << std::endl;
+      for(auto variable: variables){
+	auto cv = dynamic_cast<CategoricalVariable<counts_type>*>(variable);
+	if(cv != nullptr and cv->get_domain_name() == name){
+	  int name_val = cv->get_value();
+	  counts[name_val]++;
+	}
+	collect_helperA(counts, cv->get_children(), name);
+      }
+    }
+
+    std::vector<std::vector<int> > collect_counts(std::string nameA, std::string nameB){
+      std::vector<std::vector<int> > retval(_alphabets[nameA].get_size());
+      std::fill(retval.begin(), retval.end(), std::vector<int>(_alphabets[nameB].get_size(), 0));
+      for(auto variable: _variables){
+	auto cv = dynamic_cast<CategoricalVariable<counts_type>*>(variable);
+	if(cv != nullptr and cv->get_domain_name() == nameA){
+	  int name_a_value = cv->get_value();
+	  std::vector<int> name_b_values(retval[0].size(), 0);
+	  //std::cout << cv->type() << " " << cv->get_domain_name() << " parents: " << cv->get_parents().size() << " children: " << cv->get_children().size() << std::endl;
+	  collect_helperA(name_b_values, cv->get_children(), nameB);
+	  std::transform(retval[name_a_value].begin(), retval[name_a_value].end(), name_b_values.begin(), retval[name_a_value].begin(), [](int cur, int inc){ return cur + inc; });
+	}
+      }
+      return retval;
+    }
+
+
     Alphabet<std::string>& get_alphabet(std::string name){
       _alphabets[name].set_name(name);
       return _alphabets[name];
@@ -279,7 +322,16 @@ namespace graphmod{
       namespace io = boost::iostreams;
       namespace fs = boost::filesystem;
       fs::path first = fs::extension(file_name), second = fs::extension(fs::path(file_name).stem());
+      /*
+      for(auto variable: _variables){
+	std::cout << variable->type() << " parents: " << variable->get_parents().size() << " children: " << variable->get_children().size() << std::endl;
+      }
 
+      for(auto factor: _factors){
+	std::cout << factor->type() << " parents: " << factor->get_parents().size() << " children: " << factor->get_children().size() << std::endl;
+      }
+      */
+      
       io::filtering_ostream out;
       if(first == ".gz"){
 	out.push(io::gzip_compressor());
@@ -347,6 +399,7 @@ namespace graphmod{
       ar.register_type(static_cast<DoubleDirichletCategoricalFactor<counts_type>*>(NULL));
       ar.register_type(static_cast<HierarchicalDirichletCategoricalFactor<counts_type>*>(NULL));
       ar.register_type(static_cast<BetaBernoulliFactor<counts_type>*>(NULL));
+      ar.register_type(static_cast<TruncatedBetaBernoulliFactor<counts_type>*>(NULL));
       ar & _alphabets & _counts & _factors & _variables & _optimizers;
     }
   };

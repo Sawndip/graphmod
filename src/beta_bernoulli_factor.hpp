@@ -20,12 +20,14 @@ namespace graphmod{
     BetaBernoulliFactor(ContinuousMatrixVariable<counts_type>* prior, 
 			CategoricalVariable<counts_type>* index, 
 			MappedCategoricalVariable<counts_type>* observation) : 
+      Factor<BetaBernoulliFactor<counts_type>, counts_type>({prior, index}, {observation}),
       _prior(prior), 
       _index(index), 
-      _observation(observation){
-      prior->add_neighbor(this);
-      index->add_neighbor(this);
-      observation->add_neighbor(this);
+      _observation(observation)
+    {
+      prior->add_child(this);
+      index->add_child(this);
+      observation->add_parent(this);
     }
 
     BetaBernoulliFactor(){
@@ -34,7 +36,7 @@ namespace graphmod{
     virtual ~BetaBernoulliFactor(){
     }
 
-    static std::string name(){
+    virtual std::string type() const{
       return "BetaBernoulli";
     }
 
@@ -51,12 +53,32 @@ namespace graphmod{
       counts.add_target({_index->get_domain_name()}, {_index->get_domain_size()});
     }
 
-    static inline double log_density_function(std::vector<std::vector<double> > priors, int index_total, std::vector<int> index_observation_counts, std::map<int, bool> observations){
+    static inline double log_density_function(std::vector<std::vector<double> > priors, int total_count, std::vector<int> observation_counts, std::map<int, bool> observations){
+      std::vector<int> indices(observation_counts.size());
+      std::iota(indices.begin(), indices.end(), 0);
+      double no_observations = std::accumulate(indices.begin(), indices.end(), 0.0, [&](double current_log, int obs_id){
+	  int obs_count = observation_counts[obs_id];
+	  double obs_alpha = priors[0][obs_id];
+	  double obs_beta = priors[1][obs_id];
+	  return current_log + std::log((total_count - obs_count + obs_beta) / (total_count + obs_alpha + obs_beta));
+	});
+
+      double correction = std::accumulate(observations.begin(), observations.end(), 0.0, [&](double current_log, std::pair<int, bool> observation){
+	  int obs_id = observation.first;
+	  int obs_count = observation_counts[obs_id];
+	  double obs_alpha = priors[0][obs_id];
+	  double obs_beta = priors[1][obs_id]; 
+	  return current_log + std::log((obs_count + obs_alpha) / (total_count + obs_alpha + obs_beta)) - std::log((total_count - obs_count + obs_beta) / (total_count + obs_alpha + obs_beta));
+	});
+
+      return no_observations + correction;
+      /*
       return std::accumulate(observations.begin(), observations.end(), 0.0, [&](double current_log, std::pair<int, bool> observation){
 	  int obs_id = observation.first;
 	  int ind_obs_count = index_observation_counts[obs_id];
 	  return current_log + std::log((ind_obs_count + priors[0][obs_id]) / (index_total + priors[0][obs_id] + priors[1][obs_id]));
 	});
+      */
     }
 
     double log_density_implementation(counts_type& counts) const{
@@ -66,6 +88,7 @@ namespace graphmod{
     LogProbabilityVector log_densities_implementation(counts_type& counts, const VariableInterface<counts_type>* variable) const{
       std::vector<double> log_probs;
       if(variable == _index){
+	//return LogProbabilityVector(_index->get_domain_size());
 	std::string index_domain_name = _index->get_domain_name(), observation_domain_name = _observation->get_domain_name();
 	auto index_by_observation = counts(index_domain_name, observation_domain_name);
 	std::vector<int> index_totals;

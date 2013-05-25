@@ -27,6 +27,15 @@ namespace graphmod{
     //std::string get_name() const{
     //  return "ContinuousVectorVariable";
     //}
+    virtual std::string type_implementation() const{
+      return "ContinuousVector";
+    }
+    //static std::string variabletype; // = "CategoricalVariable";
+    /*
+    static std::string type(){
+      return "ContinuousVectorVariable";
+    }
+    */
     std::string name() const{
       return "ContinuousVectorVariable";
     }

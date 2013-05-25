@@ -16,12 +16,15 @@ namespace graphmod{
     virtual ~FactorInterface(){
     };
     virtual double density(counts_type&) const = 0;
+    virtual std::vector<graphmod::VariableInterface<counts_type>*> get_parents() const = 0;
+    virtual std::vector<graphmod::VariableInterface<counts_type>*> get_children() const = 0;
     virtual ProbabilityVector densities(counts_type&, const VariableInterface<counts_type>*) const = 0;
     virtual double log_density(counts_type&) const = 0;
     virtual LogProbabilityVector log_densities(counts_type&, const VariableInterface<counts_type>*) const = 0;
     virtual void adjust_counts(counts_type&, int) const = 0;
     virtual void compile(counts_type&) const = 0;
     virtual std::string xml() const = 0;
+    virtual std::string type() const = 0;
   private:
     friend class boost::serialization::access;
     template<class Archive>

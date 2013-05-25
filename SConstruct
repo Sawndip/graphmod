@@ -106,13 +106,13 @@ files = [
     #
     # variables
     #
-    "variable_interface", "variable", "continuous_vector_variable", "continuous_matrix_variable", "categorical_variable", "mapped_categorical_variable",
+    "variable_interface", "variable", "continuous_scalar_variable", "continuous_vector_variable", "continuous_matrix_variable", "categorical_variable", "mapped_categorical_variable",
     #"continuous_vector_variable", "continuous_matrix_variable", "discrete_scalar_variable", "discrete_vector_variable", "discrete_matrix_variable",
     
     #
     # factors
     #
-    "factor_interface", "factor", "dirichlet_categorical_factor", "beta_bernoulli_factor", "double_dirichlet_categorical_factor", "hierarchical_dirichlet_categorical_factor",
+    "factor_interface", "factor", "dirichlet_categorical_factor", "beta_bernoulli_factor", "double_dirichlet_categorical_factor", "hierarchical_dirichlet_categorical_factor", "truncated_beta_bernoulli_factor",
     
     #
     # counts
@@ -153,6 +153,7 @@ instantiates = {
 
     "variable" : [
         ("_CategoricalVariable", "graphmod::Variable<graphmod::CategoricalVariable<graphmod::Counts<graphmod::DenseCounts> >, graphmod::Counts<graphmod::DenseCounts> >"),
+        ("_ContinuousScalarVariable", "graphmod::Variable<graphmod::ContinuousScalarVariable<graphmod::Counts<graphmod::DenseCounts> >, graphmod::Counts<graphmod::DenseCounts> >"),
         ("_ContinuousVectorVariable", "graphmod::Variable<graphmod::ContinuousVectorVariable<graphmod::Counts<graphmod::DenseCounts> >, graphmod::Counts<graphmod::DenseCounts> >"),
         ("_ContinuousMatrixVariable", "graphmod::Variable<graphmod::ContinuousMatrixVariable<graphmod::Counts<graphmod::DenseCounts> >, graphmod::Counts<graphmod::DenseCounts> >"),
         ],

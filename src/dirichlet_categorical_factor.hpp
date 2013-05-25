@@ -16,12 +16,14 @@ namespace graphmod{
     DirichletCategoricalFactor(ContinuousVectorVariable<counts_type>* prior, 
 			       CategoricalVariable<counts_type>* index, 
 			       CategoricalVariable<counts_type>* observation) : 
+      Factor<DirichletCategoricalFactor<counts_type>, counts_type>({prior, index}, {observation}),
       _prior(prior), 
       _index(index), 
-      _observation(observation){
-      prior->add_neighbor(this);
-      index->add_neighbor(this);
-      observation->add_neighbor(this);
+      _observation(observation)
+    {
+      prior->add_child(this);
+      index->add_child(this);
+      observation->add_parent(this);
     }
 
     DirichletCategoricalFactor(){
@@ -30,11 +32,13 @@ namespace graphmod{
     virtual ~DirichletCategoricalFactor(){
     }
 
-    static std::string name(){
+    virtual std::string type() const{
       return "DirichletCategorical";
     }
 
-    static inline double log_density_function(const double prior_sum, const double observation_prior, const int index_count, const int index_observation_count){
+    static inline double log_density_function(const double prior_sum, const int index_count, const double observation_prior, const int index_observation_count){
+      assert(prior_sum > observation_prior);
+      assert(index_count >= index_observation_count);
       return std::log((index_observation_count + observation_prior) / (index_count + prior_sum));
     }
 
@@ -76,11 +80,11 @@ namespace graphmod{
 	    return std::accumulate(row.begin(), row.end(), 0);
 	  });
 	auto& prior_values = _prior->get_value();
-	double prior_value = prior_values[observation_value];
-	double prior_total = std::accumulate(prior_values.begin(), prior_values.end(), 0.0);
+	double observation_prior = prior_values[observation_value];
+	double prior_sum = std::accumulate(prior_values.begin(), prior_values.end(), 0.0);
 	std::transform(index_by_observation.begin(), index_by_observation.end(), index_totals.begin(), std::back_inserter(log_probs),
-		       [this,prior_value,prior_total,observation_value](std::vector<int>& counts, int totals){
-			 return log_density_function(prior_total, prior_value, totals, counts[observation_value]);
+		       [this,prior_sum,observation_prior,observation_value](std::vector<int>& counts, int index_count){
+			 return log_density_function(prior_sum, index_count, observation_prior, counts[observation_value]);
 		       });
       }
       else if(variable == _observation){
@@ -92,10 +96,11 @@ namespace graphmod{
 	auto observation_counts = counts(index_domain_name, observation_domain_name)[index_value];
 	auto& prior_values = _prior->get_value();
 	double prior_sum = std::accumulate(prior_values.begin(), prior_values.end(), 0.0);
-	int index_sum = std::accumulate(observation_counts.begin(), observation_counts.end(), 0);
+	int index_count = std::accumulate(observation_counts.begin(), observation_counts.end(), 0);
 	std::transform(observation_counts.begin(), observation_counts.end(), prior_values.begin(), std::back_inserter(log_probs),
-		       [this,index_sum,prior_sum](int ind_obs_counts, double prior_value){
-			 return log_density_function(prior_sum, prior_value, index_sum, ind_obs_counts);
+		       [this,index_count,prior_sum](int ind_obs_counts, double observation_prior){
+			 return log_density_function(prior_sum, index_count, observation_prior, ind_obs_counts);
+			 //return log_density_function(prior_sum, prior_value, index_sum, ind_obs_counts);
 		       });
       }
       return log_probs;

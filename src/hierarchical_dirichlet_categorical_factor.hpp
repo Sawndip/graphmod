@@ -17,16 +17,18 @@ namespace graphmod{
 					   ContinuousVectorVariable<counts_type>* priorB, 
 					   CategoricalVariable<counts_type>* indexB, 
 					   CategoricalVariable<counts_type>* observation) : 
+      Factor<HierarchicalDirichletCategoricalFactor<counts_type>, counts_type>({priorA, indexA, priorB, indexB}, {observation}),
       _priorA(priorA), 
       _indexA(indexA), 
       _priorB(priorB), 
       _indexB(indexB), 
-      _observation(observation){
-      priorA->add_neighbor(this);
-      indexA->add_neighbor(this);
-      priorB->add_neighbor(this);
-      indexB->add_neighbor(this);
-      observation->add_neighbor(this);
+      _observation(observation)
+    {
+      priorA->add_child(this);
+      indexA->add_child(this);
+      priorB->add_child(this);
+      indexB->add_child(this);
+      observation->add_parent(this);
     }
 
     HierarchicalDirichletCategoricalFactor(){
@@ -35,7 +37,7 @@ namespace graphmod{
     virtual ~HierarchicalDirichletCategoricalFactor(){
     }
 
-    static std::string name(){
+    virtual std::string type() const{
       return "HierarchicalDirichletCategorical";
     }
 

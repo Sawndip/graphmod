@@ -19,6 +19,14 @@ namespace graphmod{
     }
     virtual ~ContinuousMatrixVariable(){
     }
+    virtual std::string type_implementation() const{
+      return "ContinuousMatrix";
+    }
+    //static std::string variabletype; // = "CategoricalVariable";
+    /*
+    static std::string type(){
+      return "ContinuousMatrixVariable";
+      }*/
     std::string name() const{
       return "ContinuousMatrixVariable";
     }

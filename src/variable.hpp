@@ -20,12 +20,36 @@ namespace graphmod{
       static_cast<Implementation*>(this)->sample_implementation(counts);
     }
     virtual std::vector<graphmod::FactorInterface<counts_type>*> get_neighbors() const{
-      return _neighbors;
+      std::vector<graphmod::FactorInterface<counts_type>*> retval;
+      std::copy(_parents.begin(), _parents.end(), std::back_inserter(retval));
+      std::copy(_children.begin(), _children.end(), std::back_inserter(retval));
+      return retval;
     }
+    virtual std::vector<graphmod::FactorInterface<counts_type>*> get_parents() const{
+      return _parents;
+    }
+    virtual std::vector<graphmod::FactorInterface<counts_type>*> get_children() const{
+      return _children;
+    }
+    /*
     virtual void add_neighbor(graphmod::FactorInterface<counts_type>* neighbor){
       _neighbors.push_back(neighbor);
     }
-    std::string name() const{
+    */
+    virtual void add_parent(graphmod::FactorInterface<counts_type>* neighbor){
+      //_neighbors.push_back(neighbor);
+      _parents.push_back(neighbor);
+      //std::cout << "added parent " << _parents.size() << std::endl;
+    }
+    virtual void add_child(graphmod::FactorInterface<counts_type>* neighbor){
+      //_neighbors.push_back(neighbor);
+      _children.push_back(neighbor);
+      //std::cout << "added child " << _children.size() << std::endl;
+    }
+    virtual std::string type() const{
+      return static_cast<const Implementation*>(this)->type_implementation();
+    }
+    virtual std::string name() const{
       return static_cast<const Implementation*>(this)->name();
     }
     virtual std::string xml() const{
@@ -47,10 +71,10 @@ namespace graphmod{
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version){
       ar & boost::serialization::base_object<VariableInterface<counts_type> >(*this);
-      ar & _observed & _neighbors & _name;
+      ar & _observed & _name & _parents & _children;
     }
     bool _observed;
-    std::vector<FactorInterface<counts_type>*> _neighbors;
+    std::vector<FactorInterface<counts_type>*> _parents, _children;
     std::string _name;
   };
 }

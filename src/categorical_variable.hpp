@@ -59,6 +59,10 @@ namespace graphmod{
     virtual ~CategoricalVariable(){
     }
 
+    virtual std::string type_implementation() const{
+      return "CategoricalVariable";
+    }
+
     std::string name() const{
       if(get_value_copy() == -1){
 	return get_domain_name();
@@ -93,8 +97,6 @@ namespace graphmod{
 	  return factor->log_density(counts);
 	});
       return add_logs(log_densities);
-	//std::accumulate(log_densities.begin(), log_densities.end(), 0.0); //, [](double x, double y){ return x * y; });
-	//log_densities(counts)[get_value_copy()];
     }
 
     void sample_implementation(counts_type& counts){
@@ -108,7 +110,7 @@ namespace graphmod{
     }
 
     virtual std::string get_name() const{
-      return "CategoricalVariable";
+      return "Categorical";
     }
 
   private:
@@ -123,6 +125,8 @@ namespace graphmod{
     int _lower;
     int _upper;
   };
+  //template<class counts_type>
+  //std::string CategoricalVariable<counts_type>::variabletype = "CategoricalVariable";
 }
 
 #endif

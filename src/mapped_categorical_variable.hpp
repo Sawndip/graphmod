@@ -33,6 +33,16 @@ namespace graphmod{
     }
     virtual ~MappedCategoricalVariable(){
     }
+
+    virtual std::string type_implementation() const{
+      return "MappedCategorical";
+    }
+    //static std::string variabletype; // = "CategoricalVariable";
+    /*
+    static std::string type(){
+      return "MappedCategoricalVariable";
+    }
+    */
     std::string name() const{
       std::stringstream ss;
       for(auto ppair: get_value_copy()){
@@ -69,6 +79,8 @@ namespace graphmod{
       ar & boost::serialization::base_object<Categorical<std::string> >(*this);
     }
   };
+  //template<class counts_type>
+  //std::string MappedCategoricalVariable<counts_type>::variabletype = "MappedCategoricalVariable";
 }
 
 #endif

@@ -16,14 +16,16 @@ namespace graphmod{
 				     CategoricalVariable<counts_type>* indexA, 
 				     CategoricalVariable<counts_type>* indexB, 
 				     CategoricalVariable<counts_type>* observation) : 
+      Factor<DoubleDirichletCategoricalFactor<counts_type>, counts_type>({prior, indexA, indexB}, {observation}),
       _prior(prior), 
       _indexA(indexA), 
       _indexB(indexB), 
-      _observation(observation){
-      prior->add_neighbor(this);
-      indexA->add_neighbor(this);
-      indexB->add_neighbor(this);
-      observation->add_neighbor(this);
+      _observation(observation)
+    {
+      prior->add_child(this);
+      indexA->add_child(this);
+      indexB->add_child(this);
+      observation->add_parent(this);
     }
 
     DoubleDirichletCategoricalFactor(){
@@ -32,7 +34,7 @@ namespace graphmod{
     virtual ~DoubleDirichletCategoricalFactor(){
     }
 
-    static std::string name(){
+    virtual std::string type() const{
       return "DoubleDirichletCategorical";
     }
 
