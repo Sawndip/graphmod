@@ -72,6 +72,7 @@ namespace graphmod{
       for(ConllWord cw: cs){
 	if(cw.get_fine_tag()[0] == 'V' and (keep_verbs.count(cw.get_lemma()) > 0 or keep_verbs.size() == 0)){
 	  map<string, vector<string> > instance;
+	  int verb_index = cw.get_index();
 	  instance["verb"] = {cw.get_lemma()};
 
 	  instance["verb_tag"] = {cw.get_fine_tag()};
@@ -80,8 +81,12 @@ namespace graphmod{
 	  instance["lemma"].resize(0);
 	  if(window > 0){
 	    for(ConllWord ow: cs.get_near(cw, window)){
+	      string tag = ow.get_fine_tag();
 	      instance["tag"].push_back(ow.get_fine_tag());
 	      instance["lemma"].push_back(ow.get_lemma());
+	      stringstream ss;
+	      ss << ow.get_index() - verb_index;
+	      instance["gr"].push_back(ss.str());
 	    }
 	  }
 	  else{

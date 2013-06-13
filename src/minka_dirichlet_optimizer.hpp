@@ -80,7 +80,7 @@ namespace graphmod{
       _symmetric ? _node->set_value(symmetric_optimized(_node->get_value_copy(), counts(_group_name, _observation_name), iterations)) : 
 	_node->set_value(asymmetric_optimized(_node->get_value_copy(), counts(_group_name, _observation_name), iterations));
       auto x = _node->get_value_copy();
-      std::cout << "Dirichlet: " << std::accumulate(x.begin(), x.end(), 0.0) / x.size() << std::endl;
+      std::cout << "Dirichlet: " << _observation_name << " "<< std::accumulate(x.begin(), x.end(), 0.0) / x.size() << std::endl;
     }
   private:
     ContinuousVectorVariable<counts_type>* _node;
