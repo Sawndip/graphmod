@@ -78,6 +78,7 @@ namespace graphmod{
 	  if(per_verb_limit > 0 and verb_counts[cw.get_lemma()] > per_verb_limit){
 	    continue;
 	  }
+	  verb_counts[cw.get_lemma()]++;
 	  instance["verb_tag"] = {cw.get_fine_tag()};
 	  instance["tag"].resize(0);
 	  instance["gr"].resize(0);
