@@ -57,12 +57,13 @@ namespace graphmod{
     return ranges.size() - 1;
   }
 
-  graphmod::Instances from_conll(vector<string> file_names, vector<string> _keep_verbs, int window, unsigned int limit=0){
+  graphmod::Instances from_conll(vector<string> file_names, vector<string> _keep_verbs, int window, unsigned int limit=0, unsigned int per_verb_limit=0){
     Instances instances;
     set<string> keep_verbs;
     for(string verb: _keep_verbs){
       keep_verbs.insert(verb);
     }
+    std::map<std::string, unsigned int> verb_counts;
     ConllLoader sentences(file_names);
     //boost::regex expr("\\n\\s*\\n", boost::regex::perl);
     //boost::regex_iterator 
@@ -74,7 +75,9 @@ namespace graphmod{
 	  map<string, vector<string> > instance;
 	  int verb_index = cw.get_index();
 	  instance["verb"] = {cw.get_lemma()};
-
+	  if(per_verb_limit > 0 and verb_counts[cw.get_lemma()] > per_verb_limit){
+	    continue;
+	  }
 	  instance["verb_tag"] = {cw.get_fine_tag()};
 	  instance["tag"].resize(0);
 	  instance["gr"].resize(0);
