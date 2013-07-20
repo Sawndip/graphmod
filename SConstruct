@@ -61,12 +61,12 @@ if env["LOCAL_CXX"]:
 
 if env["USE_MPI"]:
     env.Append(CPPDEFINES = "GRAPHMOD_USE_MPI")
-    env.Append(LIBS=["boost_mpi"])
+    #env.Append(LIBS=["boost_mpi"])
     env["CXX"] = env["MPICXX"]
-elif env["USE_OMP"]:
+if env["USE_OMP"]:
     env.Append(CPPDEFINES = "GRAPHMOD_USE_OMP")
     env.Append(CCFLAGS=" -fopenmp")
-elif env["USE_STD_THREADS"]:
+if env["USE_STD_THREADS"]:
     env.Append(CPPDEFINES = "GRAPHMOD_USE_STD_THREADS")
 
 env['PRINT_CMD_LINE_FUNC'] = print_cmd_line

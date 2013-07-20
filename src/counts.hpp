@@ -4,6 +4,9 @@
 #include <vector>
 #include <string>
 #include "boost_libraries.hpp"
+#ifdef GRAPHMOD_USE_OMP
+#include <omp.h>
+#endif
 
 namespace graphmod{
   template<class Implementation>
@@ -56,6 +59,7 @@ namespace graphmod{
     }
 
     void increment(name_list_type names, value_list_type values, int weight){
+      #pragma omp critical
       static_cast<Implementation*>(this)->increment_implementation(names, values, weight);
     }
 
