@@ -23,6 +23,10 @@ namespace graphmod{
     }
     MinkaBetaOptimizer(){
     }
+
+    virtual OptimizerInterface<counts_type>* clone(std::map<VariableInterface<counts_type>*, VariableInterface<counts_type>*>& old_to_new) const{
+      return new MinkaBetaOptimizer(dynamic_cast<ContinuousMatrixVariable<counts_type>*>(old_to_new[_node]), _group_name, _observation_name, _symmetric);
+    }
     
     static inline std::vector<std::vector<double> > asymmetric_optimized(std::vector<std::vector<double> > current, 
 									 std::vector<int> group_counts,

@@ -36,6 +36,9 @@ namespace graphmod{
     return retval;
   }
 
+  std::mt19937_64 get_random(unsigned int seed);
+
+
   std::map<std::string, std::string> collect_properties(boost::property_tree::ptree&);
 
   std::string indent(std::string, int);
@@ -43,6 +46,8 @@ namespace graphmod{
   int find_range(double, std::vector<double>);
 
   graphmod::Instances from_conll(std::vector<std::string>, std::vector<std::string>, int, unsigned int, unsigned int);
+
+  graphmod::Instances from_valex_conll(std::vector<std::string>, std::vector<std::string>, int, unsigned int, unsigned int);
 
   graphmod::Instances from_lines(std::string, std::vector<std::string>, unsigned int);
 

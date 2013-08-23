@@ -27,6 +27,8 @@ STD_TEMPLATE_WRAP(String, string)
 %template(MapVectorPairStringIntInt) std::map<std::vector<std::pair<std::string, int> >, int>;
 
 %{
+#include <random>
+
 INCLUDES
 
 TYPEDEFS
@@ -41,5 +43,5 @@ OTHER_INSTANTIATES
 INLINES
 
 %pythoncode %{
-  _cgraphmod.initialize_random();
+  #_cgraphmod.initialize_random();
 %}

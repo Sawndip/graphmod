@@ -12,7 +12,10 @@ namespace graphmod{
     }
     ContinuousScalarVariable() : Variable<ContinuousScalarVariable, counts_type>(false), HasValue<double>(0.0){
     }
-    virtual void sample_implementation(counts_type&){
+    virtual void sample_implementation(counts_type&, std::mt19937_64&){
+    }
+    virtual VariableInterface<counts_type>* clone(std::map<std::string, Alphabet<std::string> >&) const{
+      return new ContinuousScalarVariable(get_value_copy());
     }
     double log_likelihood(counts_type&) const{
       throw GraphmodException("unimplemented: ContinuousScalarVariable::log_likelihood");

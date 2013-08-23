@@ -40,9 +40,25 @@ namespace graphmod{
       _upper(-1){
     }
 
+    CategoricalVariable(int value) : 
+      Variable<CategoricalVariable<counts_type>, counts_type >(true), 
+      HasValue<int>(value), 
+      Categorical<std::string>(), 
+      _lower(-1), 
+      _upper(-1){
+    }
+
     CategoricalVariable(Alphabet<std::string>& alphabet) : 
       Variable<CategoricalVariable<counts_type>, counts_type >(false), 
       HasValue<int>(-1), 
+      Categorical<std::string>(alphabet), 
+      _lower(-1), 
+      _upper(-1){
+    }
+
+    CategoricalVariable(Alphabet<std::string>& alphabet, int value) : 
+      Variable<CategoricalVariable<counts_type>, counts_type >(false), 
+      HasValue<int>(value), 
       Categorical<std::string>(alphabet), 
       _lower(-1), 
       _upper(-1){
@@ -57,6 +73,11 @@ namespace graphmod{
     }
 
     virtual ~CategoricalVariable(){
+    }
+
+    virtual VariableInterface<counts_type>* clone(std::map<std::string, Alphabet<std::string> >& alphs) const{
+      // WRONG!
+      return new CategoricalVariable(alphs[get_domain_name()], get_value_copy());
     }
 
     virtual std::string type_implementation() const{
@@ -99,11 +120,11 @@ namespace graphmod{
       return add_logs(log_densities);
     }
 
-    void sample_implementation(counts_type& counts){
+    void sample_implementation(counts_type& counts, std::mt19937_64& rng){
       for(auto factor: get_neighbors()){
 	factor->adjust_counts(counts, -1);
       }
-      set_value(log_densities(counts).sample(global_rng));
+      set_value(log_densities(counts).sample(rng));
       for(auto factor: get_neighbors()){
 	factor->adjust_counts(counts, 1);
       }

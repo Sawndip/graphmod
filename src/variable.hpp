@@ -16,8 +16,8 @@ namespace graphmod{
     virtual void set_observed(bool observed){
       _observed = observed;
     }
-    virtual void sample(counts_type& counts){
-      static_cast<Implementation*>(this)->sample_implementation(counts);
+    virtual void sample(counts_type& counts, std::mt19937_64& rng){
+      static_cast<Implementation*>(this)->sample_implementation(counts, rng);
     }
     virtual std::vector<graphmod::FactorInterface<counts_type>*> get_neighbors() const{
       std::vector<graphmod::FactorInterface<counts_type>*> retval;

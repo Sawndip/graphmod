@@ -20,9 +20,12 @@ namespace graphmod{
     }
     virtual ~ContinuousVectorVariable(){
     }
+    virtual VariableInterface<counts_type>* clone(std::map<std::string, Alphabet<std::string> >&) const{
+      return new ContinuousVectorVariable(get_value_copy());
+    }
     void compile(counts_type&){
     }
-    void sample_implementation(counts_type&){
+    void sample_implementation(counts_type&, std::mt19937_64&){
     }
     //std::string get_name() const{
     //  return "ContinuousVectorVariable";

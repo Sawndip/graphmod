@@ -8,6 +8,7 @@
 #include "categorical_variable.hpp"
 #include "continuous_vector_variable.hpp"
 #include "probability_vector.hpp"
+#include "utils.hpp"
 
 namespace graphmod{
   template<class counts_type>
@@ -27,6 +28,14 @@ namespace graphmod{
     }
 
     DirichletCategoricalFactor(){
+    }
+
+    virtual FactorInterface<counts_type>* clone(std::map<VariableInterface<counts_type>*, VariableInterface<counts_type>*>& old_to_new) const{
+      return new DirichletCategoricalFactor(
+					    dynamic_cast<ContinuousVectorVariable<counts_type>*>(old_to_new[_prior]), 
+					    dynamic_cast<CategoricalVariable<counts_type>*>(old_to_new[_index]), 
+					    dynamic_cast<CategoricalVariable<counts_type>*>(old_to_new[_observation])
+					    );
     }
 
     virtual ~DirichletCategoricalFactor(){

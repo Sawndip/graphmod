@@ -24,7 +24,9 @@ namespace graphmod{
     }
     MinkaDoubleDirichletOptimizer(){
     }
-
+    virtual OptimizerInterface<counts_type>* clone(std::map<VariableInterface<counts_type>*, VariableInterface<counts_type>*>& old_to_new) const{
+      return new MinkaDoubleDirichletOptimizer(dynamic_cast<ContinuousVectorVariable<counts_type>*>(old_to_new[_node]), _groupA_name, _groupB_name, _observation_name, _symmetric);
+    }
     /*
       a' = a * 
            (sum_g_o(psi(n_go + a)) - num_g * num_o * psi(a)) / 

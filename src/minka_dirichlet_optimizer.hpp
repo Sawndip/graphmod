@@ -23,6 +23,10 @@ namespace graphmod{
     }
     MinkaDirichletOptimizer(){
     }
+    
+    virtual OptimizerInterface<counts_type>* clone(std::map<VariableInterface<counts_type>*, VariableInterface<counts_type>*>& old_to_new) const{
+      return new MinkaDirichletOptimizer(dynamic_cast<ContinuousVectorVariable<counts_type>*>(old_to_new[_node]), _group_name, _observation_name, _symmetric);
+    }
 
     /*
       a' = a * 

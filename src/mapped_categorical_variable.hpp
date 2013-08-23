@@ -26,6 +26,10 @@ namespace graphmod{
       HasValue<std::map<int, bool> >(value), 
       Categorical<std::string>(alphabet){
     }
+    MappedCategoricalVariable(std::map<int, bool> value) : 
+      Variable<MappedCategoricalVariable<counts_type>, counts_type >(true), 
+      HasValue<std::map<int, bool> >(value){
+    }
     MappedCategoricalVariable(Alphabet<std::string>& alphabet, int lower, int upper) : 
       Variable<MappedCategoricalVariable<counts_type>, counts_type >(false), 
       HasValue<std::map<int, bool> >(), 
@@ -33,7 +37,9 @@ namespace graphmod{
     }
     virtual ~MappedCategoricalVariable(){
     }
-
+    virtual VariableInterface<counts_type>* clone(std::map<std::string, Alphabet<std::string> >& alphs) const{
+      return new MappedCategoricalVariable(get_value_copy(), alphs[get_domain_name()]);
+    }
     virtual std::string type_implementation() const{
       return "MappedCategorical";
     }
@@ -64,7 +70,7 @@ namespace graphmod{
 	});
       return add_logs(log_densities);
     }
-    void sample_implementation(counts_type& counts){
+    void sample_implementation(counts_type& counts, std::mt19937_64&){
       throw GraphmodException("no implementation for sampling MappedCategoricalVariables!");
     }
     virtual std::string get_name() const{

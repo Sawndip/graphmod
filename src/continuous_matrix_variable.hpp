@@ -19,6 +19,11 @@ namespace graphmod{
     }
     virtual ~ContinuousMatrixVariable(){
     }
+    virtual VariableInterface<counts_type>* clone(std::map<std::string, Alphabet<std::string> >&) const{
+      return new ContinuousMatrixVariable(get_value_copy());
+    }
+
+
     virtual std::string type_implementation() const{
       return "ContinuousMatrix";
     }
@@ -32,7 +37,7 @@ namespace graphmod{
     }
     void compile(counts_type&){
     }
-    void sample_implementation(counts_type&){
+    void sample_implementation(counts_type&, std::mt19937_64&){
     }
     double log_likelihood(counts_type&) const{
       throw GraphmodException("unimplemented: ContinuousMatrixVariable::log_likelihood");

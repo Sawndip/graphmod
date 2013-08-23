@@ -31,6 +31,15 @@ namespace graphmod{
     DoubleDirichletCategoricalFactor(){
     }
 
+    virtual FactorInterface<counts_type>* clone(std::map<VariableInterface<counts_type>*, VariableInterface<counts_type>*>& old_to_new) const{
+      return new DoubleDirichletCategoricalFactor(
+						  dynamic_cast<ContinuousVectorVariable<counts_type>*>(old_to_new[_prior]), 
+						  dynamic_cast<CategoricalVariable<counts_type>*>(old_to_new[_indexA]), 
+						  dynamic_cast<CategoricalVariable<counts_type>*>(old_to_new[_indexB]), 
+						  dynamic_cast<CategoricalVariable<counts_type>*>(old_to_new[_observation])
+						  );
+    }
+
     virtual ~DoubleDirichletCategoricalFactor(){
     }
 

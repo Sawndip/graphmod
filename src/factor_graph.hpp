@@ -7,15 +7,6 @@
 #include <vector>
 #include <iostream>
 #include <memory>
-
-#ifdef GRAPHMOD_USE_OMP
-#include <omp.h>
-#endif
-
-#ifdef GRAPHMOD_USE_MPI
-#include <mpi.h>
-#endif
-
 #include "factor_interface.hpp"
 #include "dirichlet_categorical_factor.hpp"
 #include "double_dirichlet_categorical_factor.hpp"
@@ -42,9 +33,31 @@ namespace graphmod{
   template<class counts_type>
   class FactorGraph{
   public:
-    //typedef typename configuration::counts_type counts_type;
 
     FactorGraph(){
+    }
+
+    FactorGraph(const FactorGraph& other){
+      std::cout << "copying..." << std::endl;      
+      _counts = other._counts;
+      _alphabets = other._alphabets;
+
+      std::map<VariableInterface<counts_type>*, VariableInterface<counts_type>*> old_to_new;
+      for(auto v: other._variables){
+	_variables.push_back(v->clone(_alphabets));
+	_variables.back()->set_observed(v->get_observed());
+	old_to_new[v] = _variables.back();
+      }
+      
+      /*
+      for(auto f: other._factors){
+	_factors.push_back(f->clone(old_to_new));
+      }
+      
+      for(auto o: other._optimizers){
+	_optimizers.push_back(o->clone(old_to_new));
+      }
+      */
     }
 
     FactorGraph(std::string file_name){
@@ -72,11 +85,7 @@ namespace graphmod{
       }
     }
 
-
     ~FactorGraph(){
-    }
-    
-    void settle_counts(){
     }
     
     template<class node_type, class... Args>
@@ -215,7 +224,7 @@ namespace graphmod{
       ss << "Could not find variable '" << name << "'";
       throw GraphmodException(ss.str());
     }
-    
+
     //
     // Methods
     //
@@ -248,57 +257,11 @@ namespace graphmod{
       return std::exp(-accumulate(lls.begin(), lls.end(), 0.0) / lls.size());
     }
 
-    void sample(){
-      std::cout << "SAMPLE" << std::endl;
-      for(auto variable: _variables){
-	if(not variable->get_observed()){
-	  variable->sample(_counts);
-	}
-      }
-    }
-
-    #ifdef GRAPHMOD_USE_MPI
-    void mpi_sample(){
-      std::cout << "MPISAMPLE" << std::endl;
-      for(auto variable: _variables){
-	if(not variable->get_observed()){
-	  variable->sample(_counts);
-	}
-      }
-    }
-    #endif
-
-    #ifdef GRAPHMOD_USE_OMP
-    void omp_sample(){
-      std::cout << "OMPSAMPLE" << std::endl;
-      if(vars.size() == 0){
-	for(auto variable: _variables){
-	  if(not variable->get_observed()){
-	    vars.push_back(variable);
-	    //variable->sample(_counts);
-	  }
-	}
-      }
-      //auto cc = _counts;
-      int N = vars.size();
-#pragma omp parallel for schedule(dynamic, 1000)
-      for(int i=0; i<N; i++){
-	vars[i]->sample(_counts);
-      }
-    }
-    #endif
-
-    #ifdef GRAPHMOD_USE_STD_THREADS
-    void thread_sample(){
-      for(auto variable: _variables){
-	if(not variable->get_observed()){
-	  variable->sample(_counts);
-	}
-      }
-    }
-    #endif
-
     counts_type& get_counts(){
+      return _counts;
+    }
+
+    counts_type get_counts_copy() const{
       return _counts;
     }
 
@@ -361,6 +324,10 @@ namespace graphmod{
       return retval;
     }
 
+    std::map<std::string, Alphabet<std::string> >& get_alphabets(){
+      return _alphabets;
+    }
+
     std::string str() const{
       std::stringstream ss;
       ss << "FactorGraph: " << _variables.size() << " variables, " << _factors.size() << " factors, " << _optimizers.size() << " optimizers";
@@ -407,6 +374,8 @@ namespace graphmod{
     std::vector<OptimizerInterface<counts_type>*> get_optimizers(){
       return _optimizers;
     }
+
+    /*
     std::string xml() const{
       std::stringstream ss;
       ss << "<graphml>" << std::endl<< "\t<graph>" << std::endl;
@@ -427,11 +396,11 @@ namespace graphmod{
       ss << "\t</graph>"<< std::endl << "</graphml>" << std::endl;
       return ss.str();
     }
+    */
 
   private:
     counts_type _counts;
-    std::vector<VariableInterface<counts_type>*> _variables;
-    std::vector<VariableInterface<counts_type>*> vars;
+    std::vector<VariableInterface<counts_type>*> _variables;    
     std::vector<FactorInterface<counts_type>*> _factors;
     std::vector<OptimizerInterface<counts_type>*> _optimizers;
     std::map<std::string, Alphabet<std::string> > _alphabets;

@@ -33,6 +33,14 @@ namespace graphmod{
     TruncatedBetaBernoulliFactor(){
     }
 
+    virtual FactorInterface<counts_type>* clone(std::map<VariableInterface<counts_type>*, VariableInterface<counts_type>*>& old_to_new) const{
+      return new TruncatedBetaBernoulliFactor(
+					      dynamic_cast<ContinuousMatrixVariable<counts_type>*>(old_to_new[_prior]), 
+					      dynamic_cast<CategoricalVariable<counts_type>*>(old_to_new[_index]), 
+					      dynamic_cast<MappedCategoricalVariable<counts_type>*>(old_to_new[_observation])
+					      );
+    }
+
     virtual ~TruncatedBetaBernoulliFactor(){
     }
 

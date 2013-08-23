@@ -6,16 +6,21 @@ from glob import glob
 import logging
 import time
 
+
 vars = Variables("custom.py")
 vars.AddVariables(
     ("OUTPUT_WIDTH", "", 130),
 
     ("BOOST_INCLUDE", "", "/usr/include"),
     ("BOOST_LIB", "", "/usr/lib"),
+    ("MPI_INCLUDE", "", "/usr/include"),
+    ("MPI_LIB", "", "/usr/lib"),
     ("PYTHON_PATH", "", "/usr/include/python2.7"),
 
     BoolVariable("DEBUG", "", False),
-    ("OPTIMIZE_FLAGS", "", "-O3 -ffast-math -fno-builtin -pipe -march=native -msse2 -Wall ${USE_OMP and '-fopenmp' or ''}"),
+    #("OPTIMIZE_FLAGS", "", "-Wall ${USE_OMP and '-fopenmp' or ''} %s" % (" ".join(opts))),
+    #("OPTIMIZE_FLAGS", "", "-O1 -g -Wall ${USE_OMP and '-fopenmp' or ''}"),
+    ("OPTIMIZE_FLAGS", "", "-O3 -ffast-math -fno-builtin -pipe -march=native -Wall ${USE_OMP and '-fopenmp' or ''}"),
     ("DEBUG_FLAGS", "", "-O0 -ggdb -Wall"),
 
     ("LOCAL_CXX", "", ""),
@@ -28,7 +33,7 @@ vars.AddVariables(
     BoolVariable("USE_STD_THREADS", "", False),
     ("STD_THREADS", "", 1),
 
-    BoolVariable("USE_OMP", "", False),
+    BoolVariable("USE_OPENMP", "", False),
     ("OMP_THREADS", "", 1),
     )
 
@@ -46,11 +51,11 @@ env = Environment(variables=vars, ENV=os.environ, TARFLAGS="-c -z", TARSUFFIX=".
                   BUILDERS={"Swig" : Builder(action="${LOCAL_SWIG} -o ${TARGETS[0]} -outdir ${SWIGOUTDIR} ${_CPPDEFFLAGS} ${SWIGFLAGS} ${SOURCES[0]}"),
                             "CopyFile" : Builder(action="cp ${SOURCE} ${TARGET}"),
                             },
-                  CCFLAGS="${OPTIMIZE_FLAGS} -std=c++11 -Wno-maybe-uninitialized -Wno-unused-variable",
+                  CCFLAGS="${OPTIMIZE_FLAGS} -std=c++11 -Wno-maybe-uninitialized -Wno-unused-variable -Wno-unused-local-typedefs -Wno-unused-but-set-variable",
                   SHLIBPREFIX="",
-                  LIBS=["python2.7", "boost_filesystem", "boost_serialization", "boost_iostreams", "boost_regex", "boost_system", "boost_program_options", "gomp"],
-                  CPPPATH=["${BOOST_INCLUDE}", "src/", "${PYTHON_PATH}"], 
-                  LIBPATH=["${BOOST_LIB}"],
+                  LIBS=["python2.7", "boost_filesystem", "boost_serialization", "boost_iostreams", "boost_regex", "boost_system", "boost_program_options"], #, "gomp"],
+                  CPPPATH=["${MPI_INCLUDE}", "${BOOST_INCLUDE}", "src/", "${PYTHON_PATH}"], 
+                  LIBPATH=["/usr/lib/debug/usr/lib/x86_64-linux-gnu", "${MPI_LIB}", "${BOOST_LIB}"],
                   LINKFLAGS="${OPTIMIZE_FLAGS} -std=c++11",
                   SWIGFLAGS="-O -threads -c++ -python",
                   SWIGOUTDIR="work/",
@@ -59,15 +64,6 @@ env = Environment(variables=vars, ENV=os.environ, TARFLAGS="-c -z", TARSUFFIX=".
 if env["LOCAL_CXX"]:
     env.Replace(CXX=env["LOCAL_CXX"])
 
-if env["USE_MPI"]:
-    env.Append(CPPDEFINES = "GRAPHMOD_USE_MPI")
-    #env.Append(LIBS=["boost_mpi"])
-    env["CXX"] = env["MPICXX"]
-if env["USE_OMP"]:
-    env.Append(CPPDEFINES = "GRAPHMOD_USE_OMP")
-    env.Append(CCFLAGS=" -fopenmp")
-if env["USE_STD_THREADS"]:
-    env.Append(CPPDEFINES = "GRAPHMOD_USE_STD_THREADS")
 
 env['PRINT_CMD_LINE_FUNC'] = print_cmd_line
 env.Decider("MD5-timestamp")
@@ -82,7 +78,7 @@ variables = [["%s%s" % (x, y) for x in ["Continuous", "Discrete"]] for y in ["Sc
 count_types = ["DenseCounts", "SparseCounts"]
 
 files = [
-    "random",
+    #"random",
     "boost_libraries",
     "graphmod_exception",
     "utils", "alphabet", "alphabets", "probability_vector", "log_probability_vector",
@@ -122,7 +118,13 @@ files = [
     "configuration",
 
     "factor_graph",
+
+    #
+    # samplers
+    #
+    "sampler_interface", "openmp_sampler", "serial_sampler",
     ]
+
 
 #
 # SWIG needs to be told which templates to instantiate and wrap
@@ -182,11 +184,26 @@ instantiates = {
     "configuration" : [
         ("_Config", "graphmod::Configuration<graphmod::DenseCounts>"),
         ],
-
     "factor_graph" : [
         ("_FactorGraph", "graphmod::FactorGraph<graphmod::DenseCounts>"),
-        ],
+        ],    
     }
+
+if env["USE_MPI"]:
+    env.Append(CPPDEFINES = "GRAPHMOD_USE_MPI")
+    env.Append(LIBS=["boost_mpi"])
+    env["CXX"] = env["MPICXX"]
+    instantiates["sampler_interface"] = [("_SamplerInterface", "graphmod::SamplerInterface<graphmod::FactorGraph<graphmod::DenseCounts> >")]
+    files.append("mpi_sampler")
+if env["USE_OPENMP"]:
+    env.Append(CPPDEFINES = "GRAPHMOD_USE_OPENMP")
+    env.Append(LINKFLAGS=" -fopenmp")
+    env.Append(CCFLAGS=" -fopenmp")
+    files.append("openmp_sampler")
+if env["USE_STD_THREADS"]:
+    env.Append(CPPDEFINES = "GRAPHMOD_USE_STD_THREADS")
+    files.append("stdthread_sampler")
+
 
 
 typedefs = [
@@ -221,8 +238,12 @@ module = {
     "DenseCounts" : "DenseCounts",
     "SizeVector" : "UnsignedIntVector",
     "Instances" : "Instances",
+    "OpenMPSampler" : "OpenMPSampler",
+    "SerialSampler" : "SerialSampler",
     "from_conll" : "from_conll",
+    "from_valex_conll" : "from_valex_conll",
     "from_lines" : "from_lines",
+    "get_random" : "get_random",
     "matrix_sum" : "matrix_sum",
     "cast" : "cast",
     }
@@ -274,4 +295,11 @@ sources = [y for y in [os.path.join("src", "%s.cpp" % (x)) for x in files] if os
 
 wrap = env.SharedLibrary(["work/_cgraphmod.so"], [swig_gen] + sources)
 env.Depends(wrap, py_file)
+
+
+#env.Program("bin/sample", ["src/main.cpp"] + sources)
+
 env.Default(wrap)
+
+#if env["USE_MPI"]:
+#    env.Program("bin/mpi_worker", ["src/mpi_worker.cpp"] + sources)

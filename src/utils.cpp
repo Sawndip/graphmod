@@ -6,6 +6,10 @@ namespace graphmod{
   using namespace std;
   using namespace boost;
 
+  std::mt19937_64 get_random(unsigned int seed){
+    return std::mt19937_64(seed);
+  }
+
   std::string indent(std::string s, int d){
     return s;
   }
@@ -118,6 +122,76 @@ namespace graphmod{
     return instances;
     //cout << total << endl;
   }
+
+
+  graphmod::Instances from_valex_conll(vector<string> file_names, vector<string> verbs, int window, unsigned int limit=0, unsigned int per_verb_limit=0){
+    Instances instances;
+    set<string> keep_verbs;
+    std::map<std::string, unsigned int> verb_counts;
+    cout << per_verb_limit << endl;
+    //boost::regex expr("\\n\\s*\\n", boost::regex::perl);
+    //boost::regex_iterator 
+    //int total = 0;
+    for(unsigned int fnum=0; fnum<file_names.size(); fnum++){
+      cout << fnum << " " << instances.size() << endl;
+      string only_verb = verbs[fnum];
+      if(per_verb_limit > 0 and verb_counts[only_verb] >= per_verb_limit){
+	continue;
+      }
+      ConllLoader sentences(file_names[fnum]);
+      while(not sentences.eof() and (limit == 0 or instances.size() < limit)){
+	auto cs = sentences.next();
+	for(ConllWord cw: cs){
+	  if(cw.get_fine_tag()[0] == 'V' and cw.get_lemma() == only_verb){
+	    map<string, vector<string> > instance;
+	    int verb_index = cw.get_index();
+	    instance["verb"] = {cw.get_lemma()};
+	    if(per_verb_limit > 0 and verb_counts[cw.get_lemma()] >= per_verb_limit){
+	      continue;
+	    }
+	    verb_counts[cw.get_lemma()]++;
+	    instance["verb_tag"] = {cw.get_fine_tag()};
+	    instance["tag"].resize(0);
+	    instance["gr"].resize(0);
+	    instance["lemma"].resize(0);
+	    if(window > 0){
+	      for(ConllWord ow: cs.get_near(cw, window)){
+		string tag = ow.get_fine_tag();
+		instance["tag"].push_back(ow.get_fine_tag());
+		instance["lemma"].push_back(ow.get_lemma());
+		stringstream ss;
+		ss << ow.get_index() - verb_index;
+		instance["gr"].push_back(ss.str());
+	      }
+	    }
+	    else{
+	      //instance["relation"].resize(0);
+	      for(ConllWord ow: cs.get_related(cw)){
+		stringstream ss;
+		string tag = ow.get_fine_tag(), gr = ow.get_relation();
+		if(function_tag(tag[0]) == true){
+		  ss << gr << "(" << tag << "-" << ow.get_lemma() << "," << cw.get_fine_tag() << ")";
+		}
+		else{
+		  ss << gr << "(" << tag << "," << cw.get_fine_tag() << ")";
+		}
+
+		instance["tag"].push_back(tag);
+		//instance["gr"].push_back(ss.str());
+		instance["gr"].push_back(gr);
+		instance["lemma"].push_back(ow.get_lemma());
+	      }
+	    }
+	    instances.add(instance);
+	  }
+	}
+      }
+    }
+    return instances;
+    //cout << total << endl;
+  }
+
+
 
   graphmod::Instances from_lines(string file_name, vector<string> stopword_list, unsigned int min_size){
     Instances instances;

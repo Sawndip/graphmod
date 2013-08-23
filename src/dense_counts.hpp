@@ -22,7 +22,10 @@ namespace graphmod{
     typedef Counts<DenseCounts>::value_list_type value_list_type;
     typedef Counts<DenseCounts>::size_list_type size_list_type;
     typedef Counts<DenseCounts>::index_list_type index_list_type;
-
+    typedef Counts<DenseCounts>::name_changes_type name_changes_type;
+    typedef Counts<DenseCounts>::value_changes_type value_changes_type;
+    typedef Counts<DenseCounts>::increment_changes_type increment_changes_type;
+    
     void add_target_implementation(const name_list_type names, const size_list_type sizes){
       if(sizes.size() == 1 and _vectors.count(names) == 0){
 	_vectors[names].resize(sizes[0], 0);	
@@ -105,6 +108,10 @@ namespace graphmod{
       return ss.str();
     }
     void increment_implementation(name_list_type names, value_list_type values, int weight){
+      _name_changes.push_back(names);
+      _value_changes.push_back(values);
+      _increment_changes.push_back(weight);
+      //_changes.push_back(std::make_tuple(names, values, weight));
       if(names.size() == 1){
 	_vectors[names][values[0]] += weight;
       }
@@ -118,10 +125,36 @@ namespace graphmod{
 	throw GraphmodException("DenseCounts does not store > 3 dimensions");
       }
     }
+    void clear_changes_implementation(){
+      _name_changes.clear();
+      _value_changes.clear();
+      _increment_changes.clear();
+    }
+    name_changes_type& get_name_changes_implementation(){
+      return _name_changes;
+    }    
+    value_changes_type& get_value_changes_implementation(){
+      return _value_changes;
+    }    
+    increment_changes_type& get_increment_changes_implementation(){
+      return _increment_changes;
+    }    
+    name_changes_type get_name_changes_copy_implementation() const{
+      return _name_changes;
+    }    
+    value_changes_type get_value_changes_copy_implementation() const{
+      return _value_changes;
+    }    
+    increment_changes_type get_increment_changes_copy_implementation() const{
+      return _increment_changes;
+    }    
   private:
     std::map<vector_key_type, vector_type> _vectors;
     std::map<matrix_key_type, matrix_type> _matrices;
     std::map<cube_key_type, cube_type> _cubes;    
+    name_changes_type _name_changes;
+    value_changes_type _value_changes;
+    increment_changes_type _increment_changes;
     friend class boost::serialization::access;
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version){
