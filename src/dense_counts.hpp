@@ -59,7 +59,7 @@ namespace graphmod{
     matrix_type parentheses_operator_implementation(std::string keyA, std::string keyB) const{
       return _matrices.at(matrix_key_type({keyA, keyB}));
     }
-    cube_type parentheses_operator_implementation(std::string keyA, std::string keyB, std::string keyC) const{
+    cube_type& parentheses_operator_implementation(std::string keyA, std::string keyB, std::string keyC){
       return _cubes.at(cube_key_type({keyA, keyB, keyC}));
     }
 

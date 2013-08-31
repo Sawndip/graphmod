@@ -8,7 +8,7 @@ namespace graphmod{
   template<class Implementation, class counts_type>
   class Optimizer : public OptimizerInterface<counts_type>{
   public:
-    virtual void optimize(const counts_type& counts, int iterations) const{
+    virtual void optimize(counts_type& counts, int iterations) const{
       static_cast<const Implementation*>(this)->optimize_implementation(counts, iterations);
     }
     virtual std::string xml() const{

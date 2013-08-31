@@ -79,8 +79,8 @@ namespace graphmod{
       return (iteration == iterations) ? updated : asymmetric_optimized(updated, group_observation_counts, iterations, iteration + 1);
     }
 
-    void optimize_implementation(const counts_type& counts, int iterations) const{
-      auto groupA_groupB_observation_counts = counts(_groupA_name, _groupB_name, _observation_name);
+    void optimize_implementation(counts_type& counts, int iterations) const{
+      auto& groupA_groupB_observation_counts = counts(_groupA_name, _groupB_name, _observation_name);
       std::vector<std::vector<int> > group_observation_counts;
       for(auto groupB_observation_counts: groupA_groupB_observation_counts){
 	for(auto observation_counts: groupB_observation_counts){

@@ -58,7 +58,7 @@ namespace graphmod{
       return updated;
     }
     
-    void optimize_implementation(const counts_type& counts, int iterations) const{
+    void optimize_implementation(counts_type& counts, int iterations) const{
       _symmetric ? _node->set_value(symmetric_optimized(_node->get_value_copy(), counts(_group_name), counts(_group_name, _observation_name), iterations)) : 
 	_node->set_value(asymmetric_optimized(_node->get_value_copy(), counts(_group_name), counts(_group_name, _observation_name), iterations));
       auto x = _node->get_value_copy();

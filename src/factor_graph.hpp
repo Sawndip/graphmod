@@ -367,7 +367,7 @@ namespace graphmod{
     }
     std::vector<VariableInterface<counts_type>*> get_variables(){
       return _variables;
-    }
+    }    
     std::vector<FactorInterface<counts_type>*> get_factors(){
       return _factors;
     }

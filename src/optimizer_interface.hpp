@@ -12,7 +12,7 @@ namespace graphmod{
     virtual ~OptimizerInterface(){
     }
     virtual OptimizerInterface* clone(std::map<VariableInterface<counts_type>*, VariableInterface<counts_type>*>&) const = 0;
-    virtual void optimize(const counts_type&, int) const = 0;
+    virtual void optimize(counts_type&, int) const = 0;
     virtual std::string xml() const = 0;
   private:
     friend class boost::serialization::access;

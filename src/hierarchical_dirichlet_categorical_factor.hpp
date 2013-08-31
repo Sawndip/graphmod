@@ -78,25 +78,29 @@ namespace graphmod{
     }
 
     LogProbabilityVector log_densities_implementation(counts_type& counts, const VariableInterface<counts_type>* variable) const{
-      LogProbabilityVector log_probs;
+      std::vector<double> log_probs;
 
       if(variable == _indexA or variable == _indexB){
 	throw GraphmodException("unimplemented: HierarchicalDirichletCategorical::evaluate_implementation over index");
       }
       else if(variable == _observation){
 	int size = _observation->get_domain_size();
+	std::vector<double> vals(size, 1.0 / size);
+
 	int indexA_value = _indexA->get_value(), indexB_value = _indexB->get_value();
 	std::string indexA_domain_name = _indexA->get_domain_name(), indexB_domain_name = _indexB->get_domain_name(), observation_domain_name = _observation->get_domain_name();
 	if(indexA_value == -1 or indexB_value == -1){
-	  return ProbabilityVector(size);
+	  std::vector<double> vals(size, 1.0 / size);
+	  return LogProbabilityVector(vals);
 	}
 	auto priorB = _priorB->get_value(), priorA = _priorA->get_value();
 	double priorA_sum = std::accumulate(priorA.begin(), priorA.end(), 0.0);
 	double priorB_sum = std::accumulate(priorB.begin(), priorB.end(), 0.0);
+
 	auto A_marginal_counts = counts(indexA_domain_name);
 	auto A_observation_counts = counts(indexA_domain_name, observation_domain_name);
 	auto AB_marginal_counts = counts(indexA_domain_name, indexB_domain_name);
-	auto AB_observation_counts = counts(indexA_domain_name, indexB_domain_name, observation_domain_name);
+	auto& AB_observation_counts = counts(indexA_domain_name, indexB_domain_name, observation_domain_name);
 
 	std::vector<int> indices(size);
 	std::iota(indices.begin(), indices.end(), 0);
@@ -110,8 +114,9 @@ namespace graphmod{
 					AB_marginal_counts[indexA_value][indexB_value],
 					AB_observation_counts[indexA_value][indexB_value][observation_value]);
 	  });
+
       }
-      return log_probs;
+      return LogProbabilityVector(log_probs);
     }
     
     void adjust_counts_implementation(counts_type& counts, int weight) const{

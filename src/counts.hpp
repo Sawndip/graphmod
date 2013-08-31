@@ -36,8 +36,8 @@ namespace graphmod{
       return static_cast<const Implementation*>(this)->parentheses_operator_implementation(keyA, keyB);
     }
 
-    cube_type operator()(std::string keyA, std::string keyB, std::string keyC) const{
-      return static_cast<const Implementation*>(this)->parentheses_operator_implementation(keyA, keyB, keyC);
+    cube_type& operator()(std::string keyA, std::string keyB, std::string keyC){
+      return static_cast<Implementation*>(this)->parentheses_operator_implementation(keyA, keyB, keyC);
     }
 
     int operator()(const name_list_type names, const index_list_type indices) const{
