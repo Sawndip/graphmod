@@ -59,8 +59,24 @@ namespace graphmod{
 					      const int observationA_count,
 					      const int marginalB_count,
 					      const int observationB_count){
+      assert(priorA_sum >= priorA_observation);
+      assert(priorB_sum >= priorB_observation);
+      assert(observationA_count <= marginalA_count);
+      assert(observationB_count <= marginalB_count);
+      std::cout << "gen prior: " << priorA_observation << "/" << priorA_sum << std::endl;
+      std::cout << "gen count: " << observationA_count << "/" << marginalA_count << std::endl;
+      std::cout << "spec prior: " << priorB_observation << "/" << priorB_sum << std::endl;
+      std::cout << "spec count: " << observationB_count << "/" << marginalB_count << std::endl << std::endl;
+      //return std::log((observationB_count + priorB_observation) / (marginalB_count + priorB_sum));
+      //return std::log((observationA_count + priorA_observation) / (marginalA_count + priorA_sum));
       return std::log(
-		      (observationB_count / (priorB_sum + marginalB_count)) + (priorB_observation / (priorB_sum + marginalB_count)) * ((observationA_count + priorA_observation) / (marginalA_count + priorB_sum))
+		      (observationB_count / (priorB_sum + marginalB_count)) + 
+		      (priorB_observation / (priorB_sum + marginalB_count)) * 
+		      (
+		       (observationA_count / (priorA_sum + marginalA_count)) + 
+		       (priorA_observation / (priorA_sum + marginalA_count))
+		       )
+		      //((observationA_count + priorA_observation) / (marginalA_count + priorA_sum))
 		      );
     }
 
@@ -97,9 +113,9 @@ namespace graphmod{
 	double priorA_sum = std::accumulate(priorA.begin(), priorA.end(), 0.0);
 	double priorB_sum = std::accumulate(priorB.begin(), priorB.end(), 0.0);
 
-	auto A_marginal_counts = counts(indexA_domain_name);
-	auto A_observation_counts = counts(indexA_domain_name, observation_domain_name);
-	auto AB_marginal_counts = counts(indexA_domain_name, indexB_domain_name);
+	auto& A_marginal_counts = counts(indexA_domain_name);
+	auto& A_observation_counts = counts(indexA_domain_name, observation_domain_name);
+	auto& AB_marginal_counts = counts(indexA_domain_name, indexB_domain_name);
 	auto& AB_observation_counts = counts(indexA_domain_name, indexB_domain_name, observation_domain_name);
 
 	std::vector<int> indices(size);

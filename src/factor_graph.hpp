@@ -330,7 +330,8 @@ namespace graphmod{
 
     std::string str() const{
       std::stringstream ss;
-      ss << "FactorGraph: " << _variables.size() << " variables, " << _factors.size() << " factors, " << _optimizers.size() << " optimizers";
+      int unobserved = std::count_if(_variables.begin(), _variables.end(), [](VariableInterface<counts_type>* v){ return (not v->get_observed()); });
+      ss << "FactorGraph: " << _variables.size() << " variables (" << unobserved << " unobserved), " << _factors.size() << " factors, " << _optimizers.size() << " optimizers";
       return ss.str();
     }
 

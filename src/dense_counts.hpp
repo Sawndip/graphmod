@@ -25,7 +25,7 @@ namespace graphmod{
     typedef Counts<DenseCounts>::name_changes_type name_changes_type;
     typedef Counts<DenseCounts>::value_changes_type value_changes_type;
     typedef Counts<DenseCounts>::increment_changes_type increment_changes_type;
-    
+
     void add_target_implementation(const name_list_type names, const size_list_type sizes){
       if(sizes.size() == 1 and _vectors.count(names) == 0){
 	_vectors[names].resize(sizes[0], 0);	
@@ -53,10 +53,10 @@ namespace graphmod{
       }
     }
 
-    vector_type parentheses_operator_implementation(std::string key) const{
+    vector_type& parentheses_operator_implementation(std::string key){
       return _vectors.at(vector_key_type({key}));
     }
-    matrix_type parentheses_operator_implementation(std::string keyA, std::string keyB) const{
+    matrix_type& parentheses_operator_implementation(std::string keyA, std::string keyB){
       return _matrices.at(matrix_key_type({keyA, keyB}));
     }
     cube_type& parentheses_operator_implementation(std::string keyA, std::string keyB, std::string keyC){

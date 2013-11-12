@@ -28,12 +28,12 @@ namespace graphmod{
       static_cast<Implementation*>(this)->add_target_implementation(names, sizes);
     }
 
-    vector_type operator()(std::string key) const{
-      return static_cast<const Implementation*>(this)->parentheses_operator_implementation(key);
+    vector_type& operator()(std::string key){
+      return static_cast<Implementation*>(this)->parentheses_operator_implementation(key);
     }
 
-    matrix_type operator()(std::string keyA, std::string keyB) const{
-      return static_cast<const Implementation*>(this)->parentheses_operator_implementation(keyA, keyB);
+    matrix_type& operator()(std::string keyA, std::string keyB){
+      return static_cast<Implementation*>(this)->parentheses_operator_implementation(keyA, keyB);
     }
 
     cube_type& operator()(std::string keyA, std::string keyB, std::string keyC){

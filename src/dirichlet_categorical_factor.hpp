@@ -62,16 +62,6 @@ namespace graphmod{
 
     double log_density_implementation(counts_type& counts) const{
       return log_densities_implementation(counts, _index).at(_index->get_value());
-      /*
-      std::string index_domain_name = _index->get_domain_name(), observation_domain_name = _observation->get_domain_name();
-      unsigned int index_value = _index->get_value(), observation_value = _observation->get_value();
-      auto& prior = _prior->get_value();
-      int index_observation_count = counts(std::vector<std::string>({index_domain_name, observation_domain_name}), std::vector<unsigned int>({index_value, observation_value}));
-      auto x = counts(index_domain_name, observation_domain_name);
-      int index_count = std::accumulate(x[index_value].begin(), x[index_value].end(), 0);
-      double prior_sum = accumulate(prior.begin(), prior.end(), 0.0);
-      return log_density_function(prior_sum, prior[observation_value], index_count, index_observation_count);
-      */
     }
 
     LogProbabilityVector log_densities_implementation(counts_type& counts, const VariableInterface<counts_type>* variable) const{
@@ -83,7 +73,7 @@ namespace graphmod{
 	if(observation_value == -1){
 	  return LogProbabilityVector(size);
 	}
-	auto index_by_observation = counts(index_domain_name, observation_domain_name);
+	auto& index_by_observation = counts(index_domain_name, observation_domain_name);
 	std::vector<int> index_totals;
 	std::transform(index_by_observation.begin(), index_by_observation.end(), std::back_inserter(index_totals), [](std::vector<int>& row){ 
 	    return std::accumulate(row.begin(), row.end(), 0);
@@ -109,7 +99,6 @@ namespace graphmod{
 	std::transform(observation_counts.begin(), observation_counts.end(), prior_values.begin(), std::back_inserter(log_probs),
 		       [this,index_count,prior_sum](int ind_obs_counts, double observation_prior){
 			 return log_density_function(prior_sum, index_count, observation_prior, ind_obs_counts);
-			 //return log_density_function(prior_sum, prior_value, index_sum, ind_obs_counts);
 		       });
       }
       return log_probs;
