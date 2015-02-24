@@ -1,4 +1,4 @@
-# SWIG_PATH = "/usr/bin/swig"
+# LOCAL_SWIG = "/usr/bin/swig"
 # CXX = "/usr/bin/g++"
 # PYTHON_PATH = "/usr/include/python2.7"
 # BOOST_INCLUDE

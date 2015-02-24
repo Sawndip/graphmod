@@ -18,8 +18,6 @@ vars.AddVariables(
     ("PYTHON_PATH", "", "/usr/include/python2.7"),
 
     BoolVariable("DEBUG", "", False),
-    #("OPTIMIZE_FLAGS", "", "-Wall ${USE_OMP and '-fopenmp' or ''} %s" % (" ".join(opts))),
-    #("OPTIMIZE_FLAGS", "", "-O1 -g -Wall ${USE_OMP and '-fopenmp' or ''}"),
     ("OPTIMIZE_FLAGS", "", "-O3 -ffast-math -fno-builtin -pipe -march=native -Wall ${USE_OMP and '-fopenmp' or ''}"),
     ("DEBUG_FLAGS", "", "-O0 -ggdb -Wall"),
 
@@ -296,10 +294,4 @@ sources = [y for y in [os.path.join("src", "%s.cpp" % (x)) for x in files] if os
 wrap = env.SharedLibrary(["work/_cgraphmod.so"], [swig_gen] + sources)
 env.Depends(wrap, py_file)
 
-
-#env.Program("bin/sample", ["src/main.cpp"] + sources)
-
 env.Default(wrap)
-
-#if env["USE_MPI"]:
-#    env.Program("bin/mpi_worker", ["src/mpi_worker.cpp"] + sources)
